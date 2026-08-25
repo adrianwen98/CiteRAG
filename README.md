@@ -9,7 +9,7 @@
 项目采用 FastAPI 提供 RESTful API 服务，LangChain 负责 RAG 流程编排，Chroma 作为向量数据库，并通过 Pytest 完成接口自动化测试，实现从文档索引、语义检索到答案生成的完整应用流程。
 
 
-## Demo
+## 项目展示
 
 ### Swagger API
 
@@ -430,21 +430,3 @@ pytest tests/test_api.py -v
 - 使用 HuggingFace Embedding 进行文本向量化，并支持基于语义的相似度检索。
 
 - 使用 Pytest 对 API 接口进行自动化测试，覆盖正常流程、参数异常、资源不存在以及模型服务异常等场景。
-
-
-# 项目效果展示
-
-
-## Swagger API 文档
-
-![Swagger API](docs/images/swagger.jpg)
-
-
-## 文档索引
-
-![Document Index](docs/images/index.jpg)
-
-
-## RAG 问答效果
-
-![RAG Answer](docs/images/rag_answer.jpg)
