@@ -2,13 +2,28 @@
 
 ## 项目简介
 
-本项目实现了一个基于检索增强生成（Retrieval-Augmented Generation, RAG）的知识库问答系统。
+本项目基于 LangChain 构建了一个可服务化的 RAG（Retrieval-Augmented Generation）知识库问答系统。
 
-系统支持用户上传本地 txt 文档，通过文本切分、Embedding 向量化、向量检索，将相关知识片段与用户问题结合后交由大语言模型生成回答。
+系统支持用户上传本地文档，通过文本切分、Embedding 向量化、Chroma 向量检索以及大语言模型生成，实现基于私有知识库的智能问答。
 
-项目采用 FastAPI 提供 RESTful API 服务，LangChain 负责 RAG 流程编排，Chroma 作为向量数据库，实现了从文档索引、语义检索到大语言模型生成回答的完整流程。
+项目采用 FastAPI 提供 RESTful API 服务，LangChain 负责 RAG 流程编排，Chroma 作为向量数据库，并通过 Pytest 完成接口自动化测试，实现从文档索引、语义检索到答案生成的完整应用流程。
 
-同时支持文档上传、删除、重复索引检测、知识库查询以及 API 自动化测试。
+
+## Demo
+
+### Swagger API
+
+![Swagger API](docs/images/swagger.jpg)
+
+
+### 文档索引
+
+![Document Index](docs/images/index.jpg)
+
+
+### RAG 问答效果
+
+![RAG Answer](docs/images/rag_answer.jpg)
 
 
 ## 技术栈
@@ -193,7 +208,7 @@ Answer
 - 模型调用异常
 
 
-# API 接口
+## API 接口
 
 项目通过 FastAPI 提供 RESTful API 服务。
 
