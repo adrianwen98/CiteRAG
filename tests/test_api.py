@@ -40,7 +40,7 @@ def test_documents_keyword():
     client.post(
         "/documents/index",
         json={
-            "file_path": "D:/pythonProject/RAG_Write/data/test_2.txt"
+            "file_path": "data/test_2.txt"
         }
     )
 
@@ -168,7 +168,7 @@ def test_index_document_success():
         response = client.post(
             "/documents/index",
             json={
-                "file_path": "D:/pythonProject/RAG_Write/data/test.txt"
+                "file_path": "data/test.txt"
             }
         )
 
