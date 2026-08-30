@@ -1,5 +1,9 @@
 # 基于 LangChain + Chroma + FastAPI 的 RAG 知识库问答系统
 
+# LangChain RAG FastAPI
+
+[![Python Tests](https://github.com/adrianwen98/langchain-rag-fastapi/actions/workflows/tests.yml/badge.svg)](https://github.com/adrianwen98/langchain-rag-fastapi/actions/workflows/tests.yml)
+
 ## 项目简介
 
 本项目基于 LangChain 构建了一个可服务化的 RAG（Retrieval-Augmented Generation，检索增强生成）知识库问答系统。
