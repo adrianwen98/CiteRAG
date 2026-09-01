@@ -161,6 +161,17 @@ Question + Retrieved Context
           Answer
 ```
 
+## 检索评测
+
+项目提供离线 Retrieval Evaluation，用于评估向量检索效果。
+
+- 基于 `question + expected_source` 构建评测样例
+- 使用 Hit@K 判断正确来源是否出现在 Top-K 检索结果中
+- 支持对不同 `score_threshold` 进行批量评测
+- 对无答案问题进行拒答测试，用于观察降低阈值带来的误召回风险
+
+当前小规模评测表明，不同检索阈值之间存在召回率与误召回之间的权衡，因此检索参数应基于评测结果调整，而不是仅凭经验设置。
+
 
 ## 核心功能
 
