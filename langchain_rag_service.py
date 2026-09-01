@@ -252,14 +252,15 @@ def delete_indexed_file(file_name: str) -> str:
 
 
 def retrieve_relevant_documents(
-        question: str
+        question: str,
+        score_threshold: float = SCORE_THRESHOLD,
 ) -> list[Document]:
 
     retriever = vector_store.as_retriever(
         search_type="similarity_score_threshold",
         search_kwargs={
             "k": RETRIEVER_K,
-            "score_threshold": SCORE_THRESHOLD
+            "score_threshold": score_threshold
         }
     )
 
