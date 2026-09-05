@@ -273,6 +273,8 @@ def answer_from_knowledge_base(
         question: str
 ) -> str:
 
+    from retrieval_pipeline import retrieve_final_documents
+
     if question.strip() == "":
 
         return "问题不能为空"
@@ -280,7 +282,7 @@ def answer_from_knowledge_base(
 
     try:
 
-        retriever_results = retrieve_relevant_documents(
+        retriever_results = retrieve_final_documents(
             question
         )
 
@@ -332,6 +334,8 @@ def answer_from_knowledge_base(
         )
 
     except Exception as exc:
+
+        print(type(exc).__name__, repr(exc))
 
         raise ModelServiceError(
             "模型服务调用失败"
