@@ -84,11 +84,8 @@ def test_delete_document_not_found():
 
 def test_upload_document_conflict():
 
-    file_path = Path("data/tests.txt")
-
     # 测试前清理，保证环境一致
-    if file_path.exists():
-        file_path.unlink()
+    client.delete("/documents/tests.txt")
 
     files = {
         "file": (
@@ -119,8 +116,7 @@ def test_upload_document_conflict():
     assert data["detail"] == "同名文件已存在"
 
     # 测试后清理
-    if file_path.exists():
-        file_path.unlink()
+    client.delete("/documents/tests.txt")
 
 
 
