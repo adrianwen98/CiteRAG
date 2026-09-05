@@ -1,6 +1,12 @@
 from pathlib import Path
 
-from langchain_rag_service import retrieve_relevant_documents, vector_store
+from langchain_rag_service import retrieve_relevant_documents
+
+from hybrid_retriever import retrieve_hybrid_documents
+
+from retrieval_pipeline import retrieve_final_documents
+
+from reranker import reranker_model
 
 eval_cases = [
     {
@@ -41,16 +47,21 @@ eval_cases = [
     }
 ]
 
-thresholds = [0.50, 0.45, 0.40, 0.35]
+retrievers = {
+    "Dense": lambda question: retrieve_relevant_documents(question, 0.5),
+    "Hybrid": retrieve_hybrid_documents,
+    "Hybrid + Reranker + Threshold": retrieve_final_documents,
+}
 
-for threshold in thresholds:
+
+for project_name, retriever_func in retrievers.items():
     hit_count = 0
 
     for index, case in enumerate(eval_cases, start=1):
 
         question = case["question"]
 
-        documents = retrieve_relevant_documents(question, threshold)
+        documents = retriever_func(question)
 
         expected_source = case["expected_source"]
 
@@ -74,26 +85,33 @@ for threshold in thresholds:
         print(f"预期来源：{expected_source}")
         print(f"实际来源：{sources}")
 
+
+        if project_name == "Hybrid + Reranker + Threshold" and documents:
+            pairs = []
+
+            for document_3 in documents:
+                third_page = document_3.page_content
+                pairs.append((question, third_page))
+            rerank_scores = reranker_model.predict(pairs)
+
+            for doc, score in zip(documents, rerank_scores):
+                rerank_source = Path(doc.metadata["source"]).name
+                print(f"Rerank来源：{rerank_source}, 分数：{score}")
+
         if hit:
             print("结果：PASS")
         else:
             print("结果：FAIL")
-
-        if not hit:
-            score_result = vector_store.similarity_search_with_relevance_scores(question, k=2)
-
-            for document, score in score_result:
-                document_result = Path(document.metadata["source"]).name
-                print(f"候选来源：{document_result}, 相关性分数：{score}")
 
         if hit:
             hit_count += 1
 
     hit_rate = hit_count / len(eval_cases)
 
+
+    print(f"\n===== {project_name} =====")
     print(f"命中数：{hit_count} / {len(eval_cases)}")
-    print(f"Hit Rate@2：{hit_rate:.2%}")
-    print(f"Threshold: {threshold}")
+    print(f"Hit Rate：{hit_rate:.2%}")
 
 
 

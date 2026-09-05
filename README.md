@@ -8,7 +8,9 @@
 
 本项目基于 LangChain 构建了一个可服务化的 RAG（Retrieval-Augmented Generation，检索增强生成）知识库问答系统。
 
-系统支持本地文档上传与索引，通过文本切分、Embedding 向量化、Chroma 向量检索以及大语言模型生成，实现基于私有知识库的智能问答，并支持回答来源追踪。
+系统支持本地文档上传与索引，通过文本切分、Embedding 向量化、Chroma 向量存储，以及 Dense Retrieval 与 BM25 Sparse Retrieval 组成的 Hybrid Retrieval，实现基于私有知识库的智能问答。
+
+检索阶段使用 RRF（Reciprocal Rank Fusion）融合 Dense 与 BM25 的排序结果，并通过 CrossEncoder Reranker 对候选文档进行二次相关性排序与阈值过滤，以减少弱相关内容进入最终上下文。
 
 项目采用 FastAPI 提供 RESTful API 服务，LangChain 负责 RAG 流程编排，Chroma 作为向量数据库，DeepSeek 作为大语言模型，并使用 Pytest 完成接口自动化测试。
 
@@ -37,10 +39,15 @@
 - LangChain
 - ChromaDB
 - HuggingFace Embedding
+- BM25 / rank-bm25
+- jieba
+- Sentence Transformers CrossEncoder
+- RRF（Reciprocal Rank Fusion）
 - DeepSeek API
 - Pytest
 - Docker
 - Docker Compose
+- GitHub Actions
 
 
 ## 项目结构
@@ -48,51 +55,92 @@
 ```text
 RAG_Write/
 │
-├── api_main.py                   # FastAPI 接口层
-├── langchain_rag_service.py      # RAG 业务逻辑层
-├── langchain_file_utils.py       # 文档加载与切分
-├── file_utils.py                 # 文件读取工具
+├── .github/
+│   └── workflows/
+│       └── tests.yml                 # GitHub Actions CI
 │
-├── data/                         # 示例知识库文档
+├── data/
+│   ├── test_files/
+│   │   └── empty.txt                 # 空文件测试数据
+│   ├── test.txt                      # 示例知识库文档
+│   └── test_2.txt                    # 示例知识库文档
 │
 ├── docs/
-│   └── images/                   # README 项目展示图片
+│   └── images/
+│       ├── index.jpg
+│       ├── rag_answer.jpg
+│       └── swagger.jpg               # README 项目展示图片
 │
-├── experiments/                  # 技术验证代码
+├── evaluation/
+│   └── retrieval_eval.py             # 离线检索评测
 │
-├── tests/                        # API 自动化测试
-│   └── test_api.py
+├── tests/
+│   └── test_api.py                   # FastAPI 自动化测试
 │
-├── .env.example                  # 环境变量示例
+├── api_main.py                       # FastAPI 接口层
+├── langchain_rag_service.py          # RAG 业务逻辑层
+├── langchain_file_utils.py           # LangChain 文档加载与切分
+├── file_utils.py                     # 文件读取工具
+│
+├── bm25_retriever.py                 # BM25 稀疏检索
+├── hybrid_retriever.py               # Dense + BM25 + RRF 混合检索
+├── reranker.py                       # CrossEncoder 重排序与相关性过滤
+├── retrieval_pipeline.py             # 最终检索 Pipeline
+│
+├── .env.example                      # 环境变量示例
 ├── .gitignore
 ├── .dockerignore
-├── Dockerfile                    # Docker 镜像构建配置
-├── compose.yaml                  # Docker Compose 服务配置
-├── requirements.txt              # Python 项目依赖
+├── Dockerfile                        # Docker 镜像构建配置
+├── compose.yaml                      # Docker Compose 服务配置
+├── requirements.txt                  # Python 项目依赖
 └── README.md
 ```
 
 
 ## 系统架构
 
-本项目采用分层架构设计，将 API 接口层、RAG 业务逻辑层、文档处理层以及向量数据库进行解耦。
+本项目采用分层架构设计，将 API 接口层、RAG 业务逻辑层、文档处理、检索 Pipeline、向量存储以及大语言模型调用进行拆分。
 
 整体架构如下：
 
 ```text
-用户请求
-    ↓
-FastAPI API 层（api_main.py）
-    ↓
-RAG 业务层（langchain_rag_service.py）
-    ↓
-├── 文件读取（file_utils.py）
-├── 文档加载与切分（langchain_file_utils.py）
-├── 向量生成（HuggingFace Embedding）
-├── 向量存储与检索（ChromaDB）
-└── 大语言模型生成（DeepSeek）
-```
+                         用户请求
+                            ↓
+                 FastAPI API 层
+                    （api_main.py）
+                            ↓
+                 RAG 业务逻辑层
+              （langchain_rag_service.py）
+                     ↙              ↘
 
+              文档索引流程           问答检索流程
+                   ↓                     ↓
+          文件读取 / 文档切分       Retrieval Pipeline
+          （file_utils.py）      （retrieval_pipeline.py）
+     （langchain_file_utils.py）          ↓
+                   ↓              ┌───────────────┐
+          HuggingFace Embedding   │               │
+                   ↓          Dense Retrieval   BM25 Retrieval
+               ChromaDB          （Chroma）    （bm25_retriever.py）
+                                     │               │
+                                     └───────┬───────┘
+                                             ↓
+                                         RRF Fusion
+                                  （hybrid_retriever.py）
+                                             ↓
+                                  CrossEncoder Reranker
+                                     （reranker.py）
+                                             ↓
+                                  Relevance Threshold
+                                             ↓
+                                    Final Documents
+                                             ↓
+                                      Prompt 构建
+                                             ↓
+                                      DeepSeek LLM
+                                             ↓
+                                         最终回答
+```
 
 ## RAG 工作流程
 
@@ -126,22 +174,29 @@ Chroma Vector Store
 
 ### 2. Retrieval（检索阶段）
 
-用户提出问题后：
+用户提出问题后，系统同时执行语义检索与关键词检索：
 
-1. 对用户问题进行向量化
-2. 在 Chroma 中执行语义相似度检索
-3. 返回与问题最相关的文档片段
+1. 使用 Embedding + Chroma 执行 Dense Retrieval
+2. 使用 BM25 执行 Sparse Retrieval
+3. 使用 RRF 融合两路检索结果
+4. 使用 CrossEncoder Reranker 对候选文档重新评分排序
+5. 通过 relevance threshold 过滤弱相关候选
+6. 将最终文档片段送入 Generation 阶段
 
 流程：
 
 ```text
-用户问题
- ↓
-Query Embedding
- ↓
-Chroma Similarity Search
- ↓
-相关文本片段
+                    ┌─ Dense Retrieval（Chroma）
+用户问题 ───────────┤
+                    └─ BM25 Retrieval
+                             ↓
+                        RRF Fusion
+                             ↓
+                   CrossEncoder Reranker
+                             ↓
+                    Relevance Threshold
+                             ↓
+                   Final Retrieved Context
 ```
 
 
@@ -163,15 +218,30 @@ Question + Retrieved Context
 
 ## 检索评测
 
-项目提供离线 Retrieval Evaluation，用于评估向量检索效果。
+项目提供离线 Retrieval Evaluation，用于比较不同检索策略在有答案问题召回以及无答案问题拒绝上的表现。
 
-- 基于 `question + expected_source` 构建评测样例
-- 使用 Hit@K 判断正确来源是否出现在 Top-K 检索结果中
-- 支持对不同 `score_threshold` 进行批量评测
-- 对无答案问题进行拒答测试，用于观察降低阈值带来的误召回风险
+当前评测集包含 9 条样例：
 
-当前小规模评测表明，不同检索阈值之间存在召回率与误召回之间的权衡，因此检索参数应基于评测结果调整，而不是仅凭经验设置。
+- 6 条知识库中存在答案的问题
+- 3 条知识库中不存在答案的问题
 
+对比结果：
+
+| Retrieval Strategy | Answerable Hit | No-answer Rejection | Overall |
+| --- | ---: | ---: | ---: |
+| Dense Retrieval | 5 / 6 | 3 / 3 | 8 / 9 |
+| Dense + BM25 + RRF | 6 / 6 | 0 / 3 | 6 / 9 |
+| Hybrid + Reranker + Threshold | 6 / 6 | 3 / 3 | 9 / 9 |
+
+评测结果表明：
+
+Dense Retrieval 使用较严格的相似度阈值时具有较好的无答案拒绝能力，但存在语义相关问题漏召回的情况。
+
+加入 BM25 与 RRF 后，有答案问题召回由 5/6 提升至 6/6，但 BM25 也会因为关键词重合召回部分弱相关文档，从而降低无答案问题的拒绝能力。
+
+进一步使用 CrossEncoder Reranker 对候选文档重新评分，并根据离线评测设置 relevance threshold 后，可以过滤明显弱相关的候选文档，在当前评测集上同时保持完整召回与无答案拒绝。
+
+> 当前结果基于 9 条小规模离线评测样本，`score_threshold` 同样基于当前样本进行初步调节，因此该结果主要用于验证检索 Pipeline 的有效性，而不代表通用场景下的准确率。
 
 ## 核心功能
 
@@ -190,10 +260,11 @@ Question + Retrieved Context
 
 支持：
 
-- 文件列表查询
-- 关键词筛选
-- 向量相似度检索
-- 相似度阈值过滤
+- Dense Retrieval（Chroma 语义检索）
+- BM25 Sparse Retrieval（关键词检索）
+- RRF 多路检索结果融合
+- CrossEncoder Reranker 二次排序
+- relevance threshold 弱相关候选过滤
 
 
 ### 3. RAG 问答
@@ -476,13 +547,19 @@ pytest tests/test_api.py -v
 
 ## 项目亮点
 
-- 基于 LangChain 构建完整 RAG 流程，实现文档索引、向量检索和大语言模型生成。
+- 基于 LangChain 构建完整 RAG 流程，实现文档索引、Hybrid Retrieval、候选重排序以及大语言模型生成。
 
 - 使用 FastAPI 将 RAG 能力服务化，提供文档管理、知识库检索和智能问答 RESTful API。
 
 - 使用 Chroma 作为向量数据库，通过 metadata 保存文档来源，实现回答内容的来源追踪。
 
-- 使用 HuggingFace Embedding 进行文本向量化，并结合相似度阈值实现语义检索。
+- 构建 Dense + BM25 Hybrid Retrieval，同时结合语义相似度与关键词匹配能力，提高知识片段召回率。
+
+- 使用 RRF（Reciprocal Rank Fusion）融合 Dense Retrieval 与 BM25 的排序结果，避免直接比较不同检索器的原始分数。
+
+- 使用 CrossEncoder Reranker 对候选文档进行二次相关性评分，并结合 relevance threshold 过滤弱相关上下文。
+
+- 构建离线 Retrieval Evaluation，对 Dense、Hybrid、Hybrid + Reranker 三种检索策略进行对比，并分析召回率与无答案误召回之间的权衡。
 
 - 对文档内容生成确定性索引标识，支持重复索引检测，避免同一文档重复写入向量库。
 

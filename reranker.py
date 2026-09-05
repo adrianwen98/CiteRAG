@@ -4,7 +4,15 @@ from sentence_transformers import CrossEncoder
 reranker_model = CrossEncoder("BAAI/bge-reranker-base")
 
 
-def rerank_documents(question: str, documents: list[Document]):
+def rerank_documents(
+        question: str,
+        documents: list[Document],
+        score_threshold: float = 0.1
+):
+
+    if not documents:
+        return []
+
     pairs = []
 
     for document in documents:
@@ -27,6 +35,8 @@ def rerank_documents(question: str, documents: list[Document]):
     final_documents = []
 
     for candidate_2, score_2 in scored_candidates:
-        final_documents.append(candidate_2)
+
+        if score_2 > score_threshold:
+            final_documents.append(candidate_2)
 
     return final_documents
