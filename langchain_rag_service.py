@@ -8,6 +8,11 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_deepseek import ChatDeepSeek
 from langchain_huggingface import HuggingFaceEmbeddings
 
+from file_utils import (
+    SUPPORTED_SUFFIXES,
+    DocumentNoTextError,
+    DocumentParseError,
+)
 from langchain_file_utils import load_and_split_documents
 
 EMBEDDING_MODEL_NAME = (
@@ -38,6 +43,10 @@ class DocumentEncodingError(Exception):
 
 class DocumentReadError(Exception):
     pass
+
+
+class DocumentTextError(Exception):
+    """The file is readable but has no usable text, or cannot be parsed."""
 
 
 class VectorIndexError(Exception):
@@ -82,8 +91,16 @@ def format_documents(documents: list[Document]) -> str:
 
         source_name = Path(source).name
 
+        page = document.metadata.get("page")
+
+        source_label = (
+            f"{source_name} 第{page}页"
+            if document.metadata.get("file_type") == ".pdf" and page
+            else source_name
+        )
+
         save_str = (
-            f"【片段{index}|来源：{source_name}】\n"
+            f"【片段{index}|来源：{source_label}】\n"
             f"{document.page_content}"
         )
 
@@ -100,8 +117,8 @@ def index_file_langchain(file_path: str) -> str:
     if not path.exists():
         return "文件不存在"
 
-    if path.suffix.lower() != ".txt":
-        return "暂时只支持txt文件"
+    if path.suffix.lower() not in SUPPORTED_SUFFIXES:
+        return "暂时只支持 .txt、.md 和文本型 .pdf 文件"
 
     try:
         split_documents = load_and_split_documents(
@@ -122,6 +139,10 @@ def index_file_langchain(file_path: str) -> str:
         raise DocumentReadError(
             "文件读取失败"
         ) from exc
+
+    except (DocumentNoTextError, DocumentParseError) as exc:
+
+        raise DocumentTextError(str(exc)) from exc
 
     if not split_documents:
         return "文件内容为空"
@@ -311,7 +332,8 @@ def answer_from_knowledge_base(
                     "你是一个严谨的文件问答助手，只能根据参考资料回答。"
                     "如果资料不足，请明确说明无法回答。"
                     "回答中的结论必须标注完整的片段标签，"
-                    "例如【片段1｜来源：tests.txt】。"
+                    "例如【片段1｜来源：tests.txt】或"
+                    "【片段1｜来源：manual.pdf 第2页】。"
                 ),
                 (
                     "human",

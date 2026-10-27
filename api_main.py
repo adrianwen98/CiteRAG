@@ -19,8 +19,10 @@ from langchain_rag_service import (
     VectorDeleteError,
     DocumentReadError,
     DocumentEncodingError,
+    DocumentTextError,
     VectorIndexError
 )
+from file_utils import SUPPORTED_SUFFIXES
 
 # 创建FastAPI应用对象
 app = FastAPI(
@@ -235,10 +237,10 @@ def index_document(request: IndexRequest) -> dict[str, str]:
             detail="传入的文件不存在"
         )
 
-    if file_path.suffix.lower() != ".txt":
+    if file_path.suffix.lower() not in SUPPORTED_SUFFIXES:
         raise HTTPException(
             status_code=400,
-            detail="目前只支持索引 .txt 文件"
+            detail="目前只支持索引 .txt、.md 和文本型 .pdf 文件"
         )
 
     try:
@@ -246,7 +248,7 @@ def index_document(request: IndexRequest) -> dict[str, str]:
             file_path=str(file_path)
         )
 
-    except DocumentEncodingError as exc:
+    except (DocumentEncodingError, DocumentTextError) as exc:
         raise HTTPException(
             status_code=400,
             detail=str(exc)
@@ -292,8 +294,8 @@ def index_document(request: IndexRequest) -> dict[str, str]:
 async def upload_document(file:UploadFile = File(...)):
     file_name = Path(file.filename or "").name
 
-    if Path(file_name).suffix.lower() != ".txt":
-        raise HTTPException(status_code=400,detail="目前只支持上传.txt文件")
+    if Path(file_name).suffix.lower() not in SUPPORTED_SUFFIXES:
+        raise HTTPException(status_code=400,detail="目前只支持上传 .txt、.md 和文本型 .pdf 文件")
 
     save_path = DATA_DIR / file_name
 
@@ -319,7 +321,7 @@ async def upload_document(file:UploadFile = File(...)):
     try:
         result = index_file_langchain(file_path=str(save_path))
 
-    except DocumentEncodingError as exc:
+    except (DocumentEncodingError, DocumentTextError) as exc:
         if save_path.exists():
             save_path.unlink()
 
