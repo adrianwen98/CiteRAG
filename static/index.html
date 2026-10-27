@@ -6,152 +6,220 @@
   <title>RAG 知识库问答</title>
   <style>
     :root {
-      --ink: #16171a;
-      --secondary: #4d535d;
-      --subtle: #737985;
-      --canvas: #f6f7fb;
-      --paper: #ffffff;
-      --line: #e4e7ee;
-      --line-strong: #cfd4df;
-      --accent: #5b5bd6;
-      --accent-dark: #4545b8;
-      --accent-tint: #eef0ff;
-      --success: #23795a;
-      --danger: #b42318;
-      --warn: #8a5a00;
-      --warn-bg: #fff8e8;
-      --radius: 14px;
-      --shadow: 0 16px 36px #1b243310;
+      --paper: #f4f0e6;
+      --paper-deep: #ebe5d7;
+      --ink: #20231f;
+      --muted: #6d6f66;
+      --line: #d9d2c2;
+      --line-strong: #bfb7a5;
+      --forest: #1f4d40;
+      --forest-hover: #163b31;
+      --clay: #b45f3f;
+      --clay-tint: #f4e7df;
+      --error: #9d3c34;
+      --error-tint: #f7e9e5;
+      --radius: 4px;
+      --serif: "Noto Serif SC", "Source Han Serif SC", "Songti SC", Georgia, serif;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
-      background: var(--canvas);
+      background:
+        radial-gradient(1100px 500px at 50% -220px, #fffdf7 0%, transparent 60%),
+        var(--paper);
       color: var(--ink);
-      font: 15px/1.65 Inter, "Segoe UI", "Microsoft YaHei", sans-serif;
+      font: 15px/1.7 Inter, "Segoe UI", "Microsoft YaHei", sans-serif;
       -webkit-font-smoothing: antialiased;
     }
     button, input, textarea { font: inherit; }
     button { cursor: pointer; }
-    button:disabled { cursor: not-allowed; opacity: .55; }
-    .shell { max-width: 1180px; margin: 0 auto; padding: 0 24px 34px; }
+    button:disabled { cursor: not-allowed; opacity: .45; }
+    .page { max-width: 1060px; margin: 0 auto; padding: 0 28px 80px; }
     .topbar {
       display: flex; align-items: center; justify-content: space-between;
-      gap: 16px; min-height: 72px;
+      gap: 18px; height: 86px;
     }
-    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand { display: flex; align-items: center; gap: 13px; }
     .mark {
-      display: grid; place-items: center; width: 36px; height: 36px;
-      border-radius: 10px; color: #fff; font-weight: 700; font-size: 18px;
-      background: linear-gradient(145deg, #6a6ae8, #4b4bc2);
-      box-shadow: 0 4px 12px #4b4bc22b;
+      display: grid; place-items: center; width: 37px; height: 37px;
+      background: var(--forest); color: #f4f0e6; border-radius: 3px;
+      font-family: var(--serif); font-size: 22px; font-weight: 700;
     }
-    .brand strong { display: block; font-size: 16px; letter-spacing: -.2px; }
+    .brand strong { display: block; font-family: var(--serif); font-size: 17px; letter-spacing: .2px; }
     .brand small {
-      display: block; color: var(--subtle); font-size: 10px;
-      letter-spacing: 1.5px; margin-top: 2px;
+      display: block; color: var(--muted); margin-top: 1px;
+      font-size: 9.5px; letter-spacing: 1.7px;
     }
-    .status {
+    .top-actions { display: flex; align-items: center; gap: 18px; }
+    .count { color: var(--muted); font-size: 12px; }
+    .library-button {
       display: inline-flex; align-items: center; gap: 7px;
-      border: 1px solid var(--line); background: var(--paper);
-      border-radius: 999px; padding: 6px 11px;
-      color: var(--secondary); font-size: 12px;
+      border: 1px solid var(--line-strong); background: transparent;
+      color: var(--ink); border-radius: 3px; padding: 7px 12px;
+      font-size: 12.5px; transition: .15s ease;
     }
-    .status i { width: 6px; height: 6px; border-radius: 50%; background: #2e9b70; }
-    .layout { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 18px; align-items: start; }
-    .card {
-      background: var(--paper); border: 1px solid var(--line);
-      border-radius: var(--radius); box-shadow: var(--shadow);
+    .library-button:hover { border-color: var(--forest); color: var(--forest); }
+    .library-button span {
+      display: grid; place-items: center; min-width: 17px; height: 17px;
+      border-radius: 9px; background: var(--forest); color: #fff; font-size: 10px;
     }
-    .library { padding: 20px; position: sticky; top: 18px; }
-    .card h2 { margin: 0; font-size: 15px; font-weight: 650; }
-    .eyebrow { color: var(--subtle); font-size: 12px; letter-spacing: .4px; }
-    .stats {
-      display: flex; gap: 18px; margin: 14px 0 18px;
-      color: var(--subtle); font-size: 12px;
+    .hero { padding: clamp(38px, 8vh, 90px) 0 0; max-width: 850px; margin: 0 auto; }
+    .eyebrow {
+      display: flex; align-items: center; gap: 10px;
+      color: var(--clay); font-size: 11px; letter-spacing: 1.8px;
     }
-    .stats strong { color: var(--ink); font-size: 17px; margin-right: 3px; }
-    .drop {
-      display: grid; gap: 7px; padding: 17px 14px; text-align: center;
-      border: 1px dashed var(--line-strong); border-radius: 11px;
-      background: #fbfbfe; cursor: pointer; transition: .15s ease;
+    .eyebrow::before { content: ""; width: 27px; height: 1px; background: var(--clay); }
+    .hero h1 {
+      margin: 20px 0 13px;
+      font-family: var(--serif);
+      font-size: clamp(31px, 4.4vw, 50px);
+      font-weight: 600;
+      letter-spacing: -1.2px;
+      line-height: 1.38;
+      color: var(--ink);
     }
-    .drop:hover, .drop.dragging { border-color: var(--accent); background: var(--accent-tint); }
-    .drop strong { font-size: 13px; }
-    .drop span { color: var(--subtle); font-size: 11.5px; }
-    .drop input { display: none; }
-    .upload-state { min-height: 18px; margin: 9px 1px 0; color: var(--subtle); font-size: 12px; }
-    .upload-state.error { color: var(--danger); }
-    .list-head {
-      display: flex; justify-content: space-between; align-items: baseline;
-      margin: 22px 0 9px; padding-top: 16px; border-top: 1px solid var(--line);
+    .hero h1 em { color: var(--clay); font-style: normal; }
+    .hero p { margin: 0; color: var(--muted); max-width: 620px; font-size: 14px; }
+    .ask {
+      display: flex; align-items: stretch; gap: 0; margin-top: 32px;
+      background: #fffdf8; border: 1.5px solid var(--line-strong);
+      border-radius: var(--radius); box-shadow: 0 14px 32px #4a423214;
+      transition: .15s ease;
     }
-    .list-head span { color: var(--subtle); font-size: 12px; }
-    .doc-list { display: grid; gap: 6px; max-height: 360px; overflow: auto; }
-    .doc {
-      display: flex; align-items: center; gap: 9px; padding: 9px 10px;
-      border: 1px solid transparent; border-radius: 9px;
+    .ask:focus-within { border-color: var(--forest); box-shadow: 0 14px 32px #1f4d4018; }
+    .ask textarea {
+      flex: 1; min-height: 82px; resize: vertical; border: 0; outline: 0;
+      padding: 19px 20px; background: transparent; color: var(--ink);
+      font-size: 16px; line-height: 1.75; border-radius: var(--radius) 0 0 var(--radius);
     }
-    .doc:hover { background: #f8f8fc; border-color: var(--line); }
-    .file-icon {
-      display: grid; place-items: center; width: 27px; height: 31px;
-      flex: none; border-radius: 6px; background: var(--accent-tint);
-      color: var(--accent); font-size: 9px; font-weight: 700;
-      border: 1px solid #dfe2fa;
+    .ask textarea::placeholder { color: #8d8b80; }
+    .ask button {
+      flex: none; width: 108px; margin: 7px; border: 0; border-radius: 2px;
+      background: var(--forest); color: #fdfbf4; font-weight: 600; font-size: 14px;
     }
-    .doc-name { min-width: 0; flex: 1; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .doc-delete {
-      flex: none; border: 0; background: transparent; color: var(--subtle);
-      padding: 3px 5px; border-radius: 5px; font-size: 15px; line-height: 1;
+    .ask button:hover:not(:disabled) { background: var(--forest-hover); }
+    .ask button:disabled { background: #d8d3c6; color: #858176; opacity: 1; }
+    .under-search {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; margin-top: 11px; color: var(--muted); font-size: 11.5px;
     }
-    .doc-delete:hover { background: #fbecec; color: var(--danger); }
-    .empty { padding: 17px 8px; color: var(--subtle); font-size: 12.5px; text-align: center; }
-    .hint { margin: 13px 1px 0; color: var(--subtle); font-size: 11.5px; line-height: 1.7; }
-    .workspace { padding: 26px; min-height: 520px; }
-    .workspace-head { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
-    .workspace h1 { margin: 4px 0 0; font-size: 25px; letter-spacing: -.7px; line-height: 1.35; }
-    .workspace h1 span { color: var(--subtle); font-weight: 400; }
-    .workspace-sub { margin: 7px 0 0; color: var(--secondary); font-size: 13px; }
-    .ask-box { margin-top: 24px; border: 1px solid var(--line-strong); border-radius: 12px; background: #fff; overflow: hidden; }
-    .ask-box:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px #5b5bd614; }
-    .ask-box textarea {
-      display: block; width: 100%; min-height: 100px; resize: vertical;
-      border: 0; outline: 0; padding: 16px 17px 5px; color: var(--ink);
-      background: transparent; line-height: 1.75;
+    .under-search kbd {
+      font: 10.5px inherit; border: 1px solid var(--line); border-radius: 3px;
+      padding: 1px 5px; background: #fbf8f0;
     }
-    .ask-actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 11px 13px 13px 17px; }
-    .ask-actions span { color: var(--subtle); font-size: 11.5px; }
-    .primary {
-      display: inline-flex; align-items: center; gap: 7px;
-      border: 1px solid #17181d; border-radius: 9px; padding: 9px 15px;
-      background: #17181d; color: #fff; font-size: 13px; font-weight: 600;
+    .answer-wrap { max-width: 850px; margin: 54px auto 0; }
+    .answer-label {
+      display: flex; align-items: center; gap: 9px;
+      color: var(--muted); font-size: 10.5px; letter-spacing: 1.7px;
     }
-    .primary:hover:not(:disabled) { background: #000; }
+    .answer-label::after { content: ""; flex: 1; height: 1px; background: var(--line); }
     .answer {
-      margin-top: 22px; padding: 19px 20px; border: 1px solid var(--line);
-      border-radius: 12px; background: #fbfbfd; min-height: 150px;
+      margin-top: 19px; padding: 1px 0 0 25px;
+      border-left: 1px solid var(--line-strong);
+      min-height: 110px;
     }
-    .answer-head { display: flex; align-items: center; gap: 7px; color: var(--subtle); font-size: 11.5px; letter-spacing: .4px; }
-    .answer-head i { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
-    .answer-text { margin: 12px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.85; font-size: 14.5px; }
-    .answer-text.placeholder { color: var(--subtle); }
-    .citations { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 14px; padding-top: 13px; border-top: 1px solid var(--line); }
-    .citation {
-      padding: 4px 8px; border-radius: 6px; background: var(--accent-tint);
-      color: var(--accent-dark); font-size: 11.5px; max-width: 100%;
-      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    .answer-text {
+      margin: 0; white-space: pre-wrap; overflow-wrap: anywhere;
+      font-family: var(--serif); font-size: 17px; line-height: 1.95; color: #30352f;
     }
-    .error-box { margin-top: 14px; padding: 10px 12px; border-radius: 8px; background: #fbecec; color: var(--danger); font-size: 12.5px; }
-    .loading { display: inline-flex; align-items: center; gap: 7px; color: var(--subtle); font-size: 13px; }
-    .spinner { width: 14px; height: 14px; border: 2px solid #dfe1ef; border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
+    .answer-text.placeholder { color: #88877b; }
+    .sources { margin-top: 25px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .sources-title { color: var(--muted); font-size: 11px; letter-spacing: 1.4px; }
+    .source-list { display: grid; gap: 8px; margin-top: 10px; }
+    .source-item {
+      display: flex; align-items: baseline; gap: 10px;
+      font-size: 12.5px; color: var(--ink);
+    }
+    .source-index {
+      display: inline-flex; align-items: center; justify-content: center;
+      flex: none; width: 19px; height: 19px; border-radius: 50%;
+      background: var(--clay-tint); color: var(--clay);
+      font-size: 10px; font-weight: 700;
+    }
+    .source-name { overflow-wrap: anywhere; }
+    .error {
+      margin-top: 18px; padding: 10px 12px; border-left: 2px solid var(--error);
+      background: var(--error-tint); color: var(--error); font-size: 12.5px;
+    }
+    .loading { display: inline-flex; align-items: center; gap: 9px; color: var(--muted); font-family: Inter, sans-serif; font-size: 13px; }
+    .spinner { width: 14px; height: 14px; border: 1.5px solid var(--line); border-top-color: var(--forest); border-radius: 50%; animation: spin .8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    @media (max-width: 860px) {
-      .shell { padding: 0 14px 24px; }
-      .layout { grid-template-columns: 1fr; }
-      .library { position: static; }
-      .workspace { padding: 20px 17px; min-height: 0; }
-      .workspace h1 { font-size: 22px; }
+    .drawer-backdrop {
+      position: fixed; inset: 0; z-index: 40; background: #1d211b45;
+      opacity: 0; pointer-events: none; transition: opacity .18s ease;
+    }
+    .drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+    .drawer {
+      position: fixed; top: 0; right: 0; bottom: 0; z-index: 41;
+      width: min(430px, 100vw); background: #faf7ef;
+      border-left: 1px solid var(--line-strong); box-shadow: -20px 0 50px #1d211b1a;
+      transform: translateX(100%); transition: transform .22s ease;
+      display: flex; flex-direction: column;
+    }
+    .drawer.open { transform: translateX(0); }
+    .drawer-head { display: flex; justify-content: space-between; align-items: flex-start; padding: 26px 25px 17px; }
+    .drawer-head h2 { font-family: var(--serif); font-size: 22px; margin: 3px 0 0; letter-spacing: -.4px; }
+    .close {
+      border: 0; background: transparent; color: var(--muted);
+      font-size: 24px; line-height: 1; padding: 1px 6px;
+    }
+    .close:hover { color: var(--ink); }
+    .drawer-body { padding: 0 25px 28px; overflow: auto; }
+    .drawer-stats { color: var(--muted); font-size: 12px; margin: 0 0 18px; }
+    .drawer-stats b { color: var(--ink); font-size: 15px; }
+    .upload {
+      display: grid; gap: 6px; padding: 17px 15px; text-align: center;
+      border: 1px dashed var(--line-strong); border-radius: 3px;
+      background: #fffdf8; cursor: pointer; transition: .15s ease;
+    }
+    .upload:hover, .upload.dragging { border-color: var(--forest); background: #f3eee1; }
+    .upload strong { font-size: 13px; }
+    .upload span { color: var(--muted); font-size: 11px; }
+    .upload input { display: none; }
+    .upload-state { min-height: 18px; margin: 8px 1px 0; font-size: 12px; color: var(--muted); }
+    .upload-state.error { color: var(--error); }
+    .drawer-list-title {
+      display: flex; justify-content: space-between; align-items: baseline;
+      border-top: 1px solid var(--line); margin-top: 22px; padding-top: 17px;
+    }
+    .drawer-list-title h3 { font-size: 12px; margin: 0; letter-spacing: 1.1px; color: var(--muted); font-weight: 500; }
+    .drawer-list-title span { font-size: 11px; color: var(--muted); }
+    .doc-list { margin-top: 8px; }
+    .doc {
+      display: flex; align-items: center; gap: 10px; padding: 10px 0;
+      border-bottom: 1px solid #e7e1d4;
+    }
+    .doc-type {
+      display: grid; place-items: center; width: 27px; height: 30px;
+      border: 1px solid var(--line); border-radius: 2px;
+      color: var(--forest); font-size: 8.5px; font-weight: 700;
+      background: #fffdf8; flex: none;
+    }
+    .doc-name { flex: 1; min-width: 0; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .doc-delete {
+      border: 0; background: transparent; color: #9b9a8e;
+      font-size: 16px; line-height: 1; padding: 3px 5px;
+    }
+    .doc-delete:hover { color: var(--error); }
+    .empty { padding: 17px 0; color: var(--muted); font-size: 12.5px; }
+    .drawer-note {
+      margin: 20px 0 0; color: var(--muted); font-size: 11.5px; line-height: 1.7;
+      border-left: 2px solid var(--line); padding-left: 10px;
+    }
+    @media (max-width: 680px) {
+      .page { padding: 0 18px 50px; }
+      .topbar { height: 70px; }
+      .count { display: none; }
+      .hero { padding-top: 34px; }
+      .hero h1 { font-size: 30px; }
+      .ask { display: block; }
+      .ask textarea { min-height: 110px; }
+      .ask button { width: calc(100% - 14px); height: 42px; margin-top: 0; }
+      .under-search { display: block; line-height: 1.8; }
+      .under-search span:last-child { display: none; }
+      .answer { padding-left: 15px; }
+      .answer-text { font-size: 16px; }
     }
     @media (prefers-reduced-motion: reduce) {
       * { animation-duration: .01ms !important; transition: none !important; }
@@ -159,70 +227,79 @@
   </style>
 </head>
 <body>
-  <div class="shell">
+  <div class="page">
     <header class="topbar">
       <div class="brand">
         <div class="mark">R</div>
-        <div><strong>RAG 知识库问答</strong><small>HYBRID RETRIEVAL · CITATIONS</small></div>
+        <div><strong>RAG 知识库</strong><small>DOCUMENT Q&amp;A · CITATIONS</small></div>
       </div>
-      <div class="status"><i></i>本地运行</div>
+      <div class="top-actions">
+        <span class="count" id="topCount">0 个文档 · 0 个片段</span>
+        <button class="library-button" id="openLibrary" type="button">
+          资料库 <span id="libraryCount">0</span>
+        </button>
+      </div>
     </header>
 
-    <div class="layout">
-      <aside class="card library">
-        <div class="eyebrow">KNOWLEDGE LIBRARY</div>
-        <h2 style="margin-top:5px">知识库文档</h2>
-        <div class="stats">
-          <span><strong id="docCount">0</strong> 个文档</span>
-          <span><strong id="chunkCount">0</strong> 个片段</span>
+    <section class="hero">
+      <div class="eyebrow">ASK THE ARCHIVE</div>
+      <h1>从资料里找到答案，<br>并且告诉你<em>它从哪来</em>。</h1>
+      <p>混合检索 + 重排序，只根据已索引的文档片段回答；找不到依据时，会明确说不知道。</p>
+
+      <div class="ask">
+        <textarea id="question" maxlength="500" placeholder="例如：ORBIT-2026 的保修期是多久？"></textarea>
+        <button class="primary" id="askBtn" type="button" disabled>提问</button>
+      </div>
+      <div class="under-search">
+        <span><kbd>Enter</kbd> 提问　<kbd>Shift + Enter</kbd> 换行</span>
+        <span id="searchHint">先上传资料，再开始提问</span>
+      </div>
+    </section>
+
+    <section class="answer-wrap" aria-live="polite">
+      <div class="answer-label">ANSWER</div>
+      <div class="answer">
+        <p class="answer-text placeholder" id="answerText">答案会出现在这里，并在下方列出它引用的文档片段。</p>
+        <div class="sources" id="sources" hidden>
+          <div class="sources-title">SOURCES</div>
+          <div class="source-list" id="sourceList"></div>
         </div>
-
-        <label class="drop" id="dropZone">
-          <input id="fileInput" type="file" accept=".txt,.md,.pdf,.docx">
-          <strong>上传文档，或拖到这里</strong>
-          <span>TXT · Markdown · 文本型 PDF · DOCX · 最大 2MB</span>
-        </label>
-        <div class="upload-state" id="uploadState"></div>
-
-        <div class="list-head"><h2>已索引文件</h2><span id="listCount"></span></div>
-        <div class="doc-list" id="docList"><div class="empty">正在读取知识库…</div></div>
-        <p class="hint">PDF 按页抽取文字并保留页码；扫描版 PDF、旧版 .doc 不做 OCR。</p>
-      </aside>
-
-      <main class="card workspace">
-        <div class="workspace-head">
-          <div>
-            <div class="eyebrow">ASK YOUR DOCUMENTS</div>
-            <h1>从文档里找到答案，<span>并标出来源。</span></h1>
-            <p class="workspace-sub">混合检索 + 重排序，回答只依据已索引片段；没有依据时会明确说找不到。</p>
-          </div>
-        </div>
-
-        <div class="ask-box">
-          <textarea id="question" maxlength="500" placeholder="例如：ORBIT-2026 的保修期是多久？"></textarea>
-          <div class="ask-actions">
-            <span>Enter 提问 · Shift + Enter 换行</span>
-            <button class="primary" id="askBtn" disabled>提问 <span aria-hidden="true">↗</span></button>
-          </div>
-        </div>
-
-        <section class="answer" aria-live="polite">
-          <div class="answer-head"><i></i>回答</div>
-          <p class="answer-text placeholder" id="answerText">上传文档后提问，答案和来源片段会显示在这里。</p>
-          <div class="citations" id="citations" hidden></div>
-          <div class="error-box" id="errorBox" hidden></div>
-        </section>
-      </main>
-    </div>
+        <div class="error" id="errorBox" hidden></div>
+      </div>
+    </section>
   </div>
+
+  <div class="drawer-backdrop" id="drawerBackdrop" hidden></div>
+  <aside class="drawer" id="drawer" aria-label="资料库" aria-hidden="true">
+    <div class="drawer-head">
+      <div>
+        <div class="eyebrow" style="color:var(--muted);letter-spacing:1.4px">YOUR LIBRARY</div>
+        <h2>资料库</h2>
+      </div>
+      <button class="close" id="closeLibrary" type="button" aria-label="关闭资料库">×</button>
+    </div>
+    <div class="drawer-body">
+      <p class="drawer-stats"><b id="drawerDocs">0</b> 个文档　·　<b id="drawerChunks">0</b> 个片段</p>
+
+      <label class="upload" id="dropZone">
+        <input id="fileInput" type="file" accept=".txt,.md,.pdf,.docx">
+        <strong>上传文档，或拖到这里</strong>
+        <span>TXT · Markdown · 文本型 PDF · DOCX · 最大 2MB</span>
+      </label>
+      <div class="upload-state" id="uploadState"></div>
+
+      <div class="drawer-list-title">
+        <h3>已索引文件</h3>
+        <span id="listCount"></span>
+      </div>
+      <div class="doc-list" id="docList"><div class="empty">正在读取资料库…</div></div>
+      <p class="drawer-note">PDF 按页抽取文字并保留页码；扫描版 PDF、旧版 .doc 不做 OCR。删除文件会同时删除对应向量。</p>
+    </div>
+  </aside>
 
   <script>
     const $ = (id) => document.getElementById(id);
     const state = { files: [], busy: false };
-
-    function escapeText(value) {
-      return String(value ?? "");
-    }
 
     function setUpload(text, error = false) {
       $("uploadState").textContent = text;
@@ -234,29 +311,33 @@
       $("errorBox").hidden = !text;
     }
 
-    function fileBadge(name) {
-      const ext = (name.split(".").pop() || "").toUpperCase();
-      return ext.slice(0, 4);
+    function typeOf(name) {
+      return (name.split(".").pop() || "FILE").toUpperCase().slice(0, 4);
     }
 
     function renderFiles() {
-      $("docCount").textContent = state.files.length;
+      $("topCount").textContent = `${state.files.length} 个文档 · ${$("drawerChunks").textContent} 个片段`;
+      $("libraryCount").textContent = state.files.length;
+      $("drawerDocs").textContent = state.files.length;
       $("listCount").textContent = state.files.length ? `${state.files.length} 个` : "";
+      $("searchHint").textContent = state.files.length
+        ? "根据已索引资料回答"
+        : "先上传资料，再开始提问";
       const list = $("docList");
       list.textContent = "";
       if (!state.files.length) {
         const empty = document.createElement("div");
         empty.className = "empty";
-        empty.textContent = "还没有文档。先上传一份 TXT、Markdown、PDF 或 DOCX。";
+        empty.textContent = "资料库还是空的。上传 TXT、Markdown、PDF 或 DOCX 开始。";
         list.appendChild(empty);
         return;
       }
       for (const name of state.files) {
         const row = document.createElement("div");
         row.className = "doc";
-        const icon = document.createElement("span");
-        icon.className = "file-icon";
-        icon.textContent = fileBadge(name);
+        const type = document.createElement("span");
+        type.className = "doc-type";
+        type.textContent = typeOf(name);
         const label = document.createElement("span");
         label.className = "doc-name";
         label.title = name;
@@ -268,7 +349,7 @@
         del.setAttribute("aria-label", `删除 ${name}`);
         del.textContent = "×";
         del.addEventListener("click", () => removeFile(name));
-        row.append(icon, label, del);
+        row.append(type, label, del);
         list.appendChild(row);
       }
     }
@@ -283,12 +364,28 @@
         state.files = data.files || [];
         if (statsResponse.ok) {
           const stats = await statsResponse.json();
-          $("chunkCount").textContent = stats.vector_count ?? 0;
+          $("drawerChunks").textContent = stats.vector_count ?? 0;
         }
         renderFiles();
       } catch (error) {
         showError(error.message || "无法连接后端");
       }
+    }
+
+    function openLibrary() {
+      $("drawerBackdrop").hidden = false;
+      requestAnimationFrame(() => $("drawerBackdrop").classList.add("open"));
+      $("drawer").classList.add("open");
+      $("drawer").setAttribute("aria-hidden", "false");
+      $("closeLibrary").focus();
+    }
+
+    function closeLibrary() {
+      $("drawer").classList.remove("open");
+      $("drawer").setAttribute("aria-hidden", "true");
+      $("drawerBackdrop").classList.remove("open");
+      window.setTimeout(() => { $("drawerBackdrop").hidden = true; }, 200);
+      $("openLibrary").focus();
     }
 
     async function upload(file) {
@@ -342,12 +439,12 @@
       if (!question || state.busy) return;
       state.busy = true;
       $("askBtn").disabled = true;
-      $("answerText").classList.remove("placeholder");
-      $("answerText").textContent = "";
-      $("citations").hidden = true;
-      $("citations").textContent = "";
+      $("sources").hidden = true;
+      $("sourceList").textContent = "";
       showError("");
       const answerNode = $("answerText");
+      answerNode.classList.remove("placeholder");
+      answerNode.textContent = "";
       const loading = document.createElement("span");
       loading.className = "loading";
       loading.innerHTML = '<span class="spinner"></span>正在检索并生成回答…';
@@ -364,14 +461,18 @@
         answerNode.textContent = data.answer || "没有返回内容";
         const citations = extractCitations(data.answer || "");
         if (citations.length) {
-          const box = $("citations");
-          box.hidden = false;
-          citations.forEach((citation) => {
-            const chip = document.createElement("span");
-            chip.className = "citation";
-            chip.title = citation;
-            chip.textContent = citation;
-            box.appendChild(chip);
+          $("sources").hidden = false;
+          citations.forEach((citation, index) => {
+            const row = document.createElement("div");
+            row.className = "source-item";
+            const number = document.createElement("span");
+            number.className = "source-index";
+            number.textContent = String(index + 1);
+            const name = document.createElement("span");
+            name.className = "source-name";
+            name.textContent = citation;
+            row.append(number, name);
+            $("sourceList").appendChild(row);
           });
         }
       } catch (error) {
@@ -383,6 +484,12 @@
       }
     }
 
+    $("openLibrary").addEventListener("click", openLibrary);
+    $("closeLibrary").addEventListener("click", closeLibrary);
+    $("drawerBackdrop").addEventListener("click", closeLibrary);
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && $("drawer").classList.contains("open")) closeLibrary();
+    });
     $("fileInput").addEventListener("change", (event) => upload(event.target.files[0]));
     const drop = $("dropZone");
     ["dragenter", "dragover"].forEach((event) => drop.addEventListener(event, (e) => {
