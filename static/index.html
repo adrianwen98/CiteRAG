@@ -15,6 +15,7 @@
       --forest: #1f4d40;
       --forest-hover: #163b31;
       --clay: #b45f3f;
+      --clay-ink: #9d4f32;
       --clay-tint: #f4e7df;
       --error: #9d3c34;
       --error-tint: #f7e9e5;
@@ -47,7 +48,7 @@
       font-family: var(--serif); font-size: 22px; font-weight: 700;
     }
     .brand strong { display: flex; align-items: baseline; gap: 2px; font-size: 18px; letter-spacing: -.5px; }
-    .brand .cite { font-family: "Segoe Script", "Brush Script MT", Georgia, serif; font-style: italic; font-weight: 400; letter-spacing: -1px; }
+    .brand .cite { font-family: "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif; font-style: italic; font-weight: 500; letter-spacing: -0.8px; }
     .brand .rag { font-weight: 800; letter-spacing: -.8px; }
     .brand small {
       display: block; color: var(--muted); margin-top: 1px;
@@ -73,27 +74,22 @@
     }
     .eyebrow::before { content: ""; width: 27px; height: 1px; background: var(--clay); }
     .wordmark {
-      position: relative; display: inline-flex; align-items: baseline; gap: 7px;
-      margin: 14px 0 23px; line-height: .92; letter-spacing: -4px;
-      color: var(--ink); font-size: clamp(58px, 7vw, 92px);
+      position: relative; display: inline-flex; align-items: baseline; gap: 10px;
+      margin: 14px 0 29px; line-height: .92; letter-spacing: -3px;
+      color: var(--ink); font-family: "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+      font-size: clamp(58px, 7vw, 92px);
     }
     .wordmark .cite {
-      font-family: "Segoe Script", "Brush Script MT", Georgia, serif;
-      font-style: italic; font-weight: 400; letter-spacing: -5px;
+      font-style: italic; font-weight: 500; letter-spacing: -4px;
     }
     .wordmark .rag {
-      font-family: Inter, "Segoe UI", "Microsoft YaHei", sans-serif;
-      font-weight: 800; letter-spacing: -6px;
+      font-style: normal; font-weight: 700; letter-spacing: -3px;
     }
     .signature {
       position: absolute; left: 2px; bottom: -13px; width: 72%; height: 15px;
       color: var(--clay); overflow: visible;
     }
-    .tagline {
-      margin: 0 0 6px; color: var(--clay); font-size: 12px;
-      letter-spacing: 1.5px; text-transform: uppercase;
-    }
-    .hero-sub { margin: 0; color: var(--muted); max-width: 760px; font-size: 14px; }
+    .hero-sub { margin: 0; color: var(--clay-ink); max-width: 900px; font-size: 14px; }
     .examples { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 16px; color: var(--muted); font-size: 12px; }
     .examples button {
       border: 1px solid var(--line); background: transparent; color: var(--secondary);
@@ -275,7 +271,6 @@
           <path d="M3 12 C38 2, 78 17, 118 7 S 190 3, 236 10" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
         </svg>
       </h1>
-      <p class="tagline">文档问答 · 混合检索 · 引用溯源</p>
       <p class="hero-sub">在已上传的文档中检索，回答会列出引用片段；找不到依据时会明确说明。</p>
 
       <div class="ask">
