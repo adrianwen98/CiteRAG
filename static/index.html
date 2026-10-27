@@ -124,6 +124,11 @@
       font-family: var(--serif); font-size: 17px; line-height: 1.95; color: #30352f;
     }
     .answer-text.placeholder { color: #88877b; }
+    .answer-text strong { color: var(--ink); font-weight: 700; }
+    .answer-text code {
+      padding: 1px 5px; border-radius: 3px; background: #ece6d7;
+      color: #6f4b32; font: 12.5px/1.6 Consolas, monospace;
+    }
     .sources { margin-top: 25px; padding-top: 16px; border-top: 1px solid var(--line); }
     .sources-title { color: var(--muted); font-size: 11px; letter-spacing: 1.4px; }
     .source-list { display: grid; gap: 8px; margin-top: 10px; }
@@ -301,6 +306,19 @@
     const $ = (id) => document.getElementById(id);
     const state = { files: [], busy: false };
 
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+      }[char]));
+    }
+
+    function renderAnswer(value) {
+      // Escape first: model output is untrusted. Then allow only inline bold/code.
+      return escapeHtml(value)
+        .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+        .replace(/`([^`]+)`/g, "<code>$1</code>");
+    }
+
     function setUpload(text, error = false) {
       $("uploadState").textContent = text;
       $("uploadState").className = "upload-state" + (error ? " error" : "");
@@ -458,7 +476,7 @@
         let data = {};
         try { data = await response.json(); } catch (_) {}
         if (!response.ok) throw new Error(data.detail || "问答失败");
-        answerNode.textContent = data.answer || "没有返回内容";
+        answerNode.innerHTML = renderAnswer(data.answer || "没有返回内容");
         const citations = extractCitations(data.answer || "");
         if (citations.length) {
           $("sources").hidden = false;
