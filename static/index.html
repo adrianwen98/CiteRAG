@@ -64,7 +64,7 @@
       display: grid; place-items: center; min-width: 17px; height: 17px;
       border-radius: 9px; background: var(--forest); color: #fff; font-size: 10px;
     }
-    .hero { padding: clamp(38px, 8vh, 90px) 0 0; max-width: 850px; margin: 0 auto; }
+    .hero { padding: clamp(30px, 5.5vh, 64px) 0 0; max-width: 850px; margin: 0 auto; }
     .eyebrow {
       display: flex; align-items: center; gap: 10px;
       color: var(--clay); font-size: 11px; letter-spacing: 1.8px;
@@ -73,9 +73,9 @@
     .hero h1 {
       margin: 20px 0 13px;
       font-family: Inter, "Segoe UI", "Microsoft YaHei", sans-serif;
-      font-size: clamp(30px, 4.1vw, 46px);
+      font-size: clamp(28px, 3.2vw, 38px);
       font-weight: 650;
-      letter-spacing: -1.4px;
+      letter-spacing: -1px;
       line-height: 1.35;
       color: var(--ink);
     }
@@ -247,9 +247,9 @@
     </header>
 
     <section class="hero">
-      <div class="eyebrow">ASK YOUR DOCUMENTS</div>
-      <h1>问你的文档，<br><em>答案有出处</em>。</h1>
-      <p>混合检索与重排序，只依据已索引片段回答；找不到依据时会明确说明。</p>
+      <div class="eyebrow">RAG · RETRIEVAL &amp; RERANKING</div>
+      <h1>文档问答</h1>
+      <p>在已上传的文档中检索，回答会列出引用片段；找不到依据时会明确说明。</p>
 
       <div class="ask">
         <textarea id="question" maxlength="500" placeholder="例如：ORBIT-2026 的保修期是多久？"></textarea>
