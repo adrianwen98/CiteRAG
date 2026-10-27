@@ -36,29 +36,21 @@
     button, input, textarea { font: inherit; }
     button { cursor: pointer; }
     button:disabled { cursor: not-allowed; opacity: .45; }
-    .page { max-width: 1320px; margin: 0 auto; padding: 0 36px 80px; }
-    .topbar {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 18px; height: 86px;
+    .page { max-width: 1320px; margin: 0 auto; padding: 26px 36px 96px; }
+    .dock {
+      position: fixed; right: clamp(16px, 2.4vw, 30px); bottom: clamp(16px, 2.4vh, 26px);
+      z-index: 30; display: flex; align-items: center; gap: 12px;
+      padding: 5px 5px 5px 14px; border: 1px solid var(--line);
+      border-radius: 999px; background: #faf7efd9;
+      backdrop-filter: blur(8px); box-shadow: 0 8px 26px #1d211b14;
     }
-    .brand { display: flex; align-items: center; gap: 13px; }
-    .mark {
-      display: grid; place-items: center; width: 37px; height: 37px;
-      background: var(--forest); color: #f4f0e6; border-radius: 3px;
-      font-family: var(--serif); font-size: 22px; font-weight: 700;
+    .dock-count { color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .dock .library-button {
+      border-color: var(--forest); background: var(--forest);
+      color: #f4f0e6; border-radius: 999px; padding: 6px 12px;
     }
-    .brand strong { display: flex; align-items: baseline; gap: 2px; font-size: 18px; letter-spacing: -.5px; }
-    .brand .cite { font-family: "Segoe Script", "Brush Script MT", Georgia, serif; font-style: italic; font-weight: 400; letter-spacing: -0.8px; }
-    .brand .rag {
-      font-family: "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
-      font-style: italic; font-weight: 400; letter-spacing: -.2px;
-    }
-    .brand small {
-      display: block; color: var(--muted); margin-top: 1px;
-      font-size: 9.5px; letter-spacing: 1.7px;
-    }
-    .top-actions { display: flex; align-items: center; gap: 18px; }
-    .count { color: var(--muted); font-size: 12px; }
+    .dock .library-button:hover { background: #163a30; border-color: #163a30; color: #fff; }
+    .dock .library-button span { background: #f4f0e6; color: var(--forest); }
     .library-button {
       display: inline-flex; align-items: center; gap: 7px;
       border: 1px solid var(--line-strong); background: transparent;
@@ -233,11 +225,11 @@
       border-left: 2px solid var(--line); padding-left: 10px;
     }
     @media (max-width: 680px) {
-      .page { padding: 0 18px 50px; }
+      .page { padding: 18px 18px 84px; }
       .wordmark { font-size: 58px; letter-spacing: -3px; }
       .signature { width: 76%; }
-      .topbar { height: 70px; }
-      .count { display: none; }
+      .dock { gap: 0; padding: 4px; }
+      .dock-count { display: none; }
       .hero { padding-top: 34px; }
       .hero h1 { font-size: 30px; }
       .ask { display: block; }
@@ -255,19 +247,6 @@
 </head>
 <body>
   <div class="page">
-    <header class="topbar">
-      <div class="brand">
-        <div class="mark">R</div>
-        <div><strong><span class="cite">Cite</span><span class="rag">RAG</span></strong><small>DOCUMENT Q&amp;A · CITATIONS</small></div>
-      </div>
-      <div class="top-actions">
-        <span class="count" id="topCount">0 个文档 · 0 个片段</span>
-        <button class="library-button" id="openLibrary" type="button">
-          资料库 <span id="libraryCount">0</span>
-        </button>
-      </div>
-    </header>
-
     <section class="hero">
       <div class="eyebrow">RAG · RETRIEVAL &amp; RERANKING</div>
       <h1 class="wordmark" aria-label="CiteRAG">
@@ -305,6 +284,13 @@
         <div class="error" id="errorBox" hidden></div>
       </div>
     </section>
+  </div>
+
+  <div class="dock">
+    <span class="dock-count" id="topCount">0 个文档 · 0 个片段</span>
+    <button class="library-button" id="openLibrary" type="button">
+      资料库 <span id="libraryCount">0</span>
+    </button>
   </div>
 
   <div class="drawer-backdrop" id="drawerBackdrop" hidden></div>
