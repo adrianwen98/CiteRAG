@@ -128,4 +128,5 @@ def test_root_serves_single_page_ui():
     response = client.get("/")
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
-    assert "RAG 知识库问答" in response.text
+    assert "CiteRAG" in response.text
+    assert "文档问答" in response.text
