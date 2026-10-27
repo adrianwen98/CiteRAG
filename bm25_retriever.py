@@ -18,6 +18,11 @@ def retrieve_bm25_documents(
     metadatas = data["metadatas"]
     ids = data["ids"]
 
+    # BM25Okapi([]) 会除零。知识库为空时直接返回，交由上层给出
+    # “没有找到相关资料”的正常回答，而不是 500。
+    if not texts:
+        return []
+
     words_documents = []
 
     for text in texts:

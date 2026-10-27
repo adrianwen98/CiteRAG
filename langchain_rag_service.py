@@ -58,6 +58,32 @@ embedding_model = HuggingFaceEmbeddings(
 )
 
 
+def build_chunk_ids(
+        file_path: Path,
+        file_hash: str,
+        chunk_count: int,
+) -> list[str]:
+    """Chunk IDs must be unique per file, not just per content.
+
+    Two files with identical bytes but different names would otherwise share
+    IDs: indexing the second one overwrites the first one's metadata, and
+    deleting either removes both. A stable hash of the file name keeps IDs
+    deterministic while separating identical-content files.
+    """
+    file_key = hashlib.sha256(
+        file_path.name.encode("utf-8")
+    ).hexdigest()[:16]
+
+    index_version = (
+        f"{file_hash}_{file_key}_{CHUNK_SIZE}_{CHUNK_OVERLAP}"
+    )
+
+    return [
+        f"{index_version}_{index}"
+        for index in range(chunk_count)
+    ]
+
+
 llm = ChatDeepSeek(
     model="deepseek-v4-pro",
     temperature=0,
@@ -151,14 +177,11 @@ def index_file_langchain(file_path: str) -> str:
         path.read_bytes()
     ).hexdigest()
 
-    index_version = (
-        f"{file_hash}_{CHUNK_SIZE}_{CHUNK_OVERLAP}"
+    chunk_ids = build_chunk_ids(
+        path,
+        file_hash,
+        len(split_documents),
     )
-
-    chunk_ids = [
-        f"{index_version}_{index}"
-        for index in range(len(split_documents))
-    ]
 
     result = vector_store.get(
         include=["metadatas"]
@@ -185,10 +208,23 @@ def index_file_langchain(file_path: str) -> str:
     if set(old_ids) == set(chunk_ids):
         return "文件内容未变化，无需重复索引"
 
-    if old_ids:
-        vector_store.delete(
-            ids=old_ids
-        )
+    # 先写新版本、成功后再删旧版本。原实现先删后写，一旦写入失败，
+    # 旧索引已经丢失，文件也无法再被检索到。
+    existing_ids = set(ids)
+    added_ids = [
+        chunk_id
+        for chunk_id in chunk_ids
+        if chunk_id not in existing_ids
+    ]
+
+    def discard_added_chunks() -> None:
+        if not added_ids:
+            return
+        try:
+            vector_store.delete(ids=added_ids)
+        except Exception:
+            # 清理失败不能掩盖原始写入错误；旧索引仍在。
+            pass
 
     try:
         vector_store.add_documents(
@@ -196,12 +232,28 @@ def index_file_langchain(file_path: str) -> str:
             ids=chunk_ids
         )
 
-
     except Exception as exc:
+        discard_added_chunks()
 
         raise VectorIndexError(
             "文件索引失败"
         ) from exc
+
+    stale_ids = [
+        old_id
+        for old_id in old_ids
+        if old_id not in set(chunk_ids)
+    ]
+
+    if stale_ids:
+        try:
+            vector_store.delete(ids=stale_ids)
+        except Exception as exc:
+            discard_added_chunks()
+
+            raise VectorIndexError(
+                "文件索引失败"
+            ) from exc
 
     return (
         f"文件索引成功，并写入{len(split_documents)}个片段"

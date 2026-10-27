@@ -12,6 +12,7 @@ services:
 
     volumes:
       - rag-chroma-data:/app/chroma_db
+      - rag-upload-data:/app/data
 
     healthcheck:
       test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health')" ]
@@ -23,3 +24,5 @@ services:
 volumes:
   rag-chroma-data:
     name: rag-chroma-data
+  rag-upload-data:
+    name: rag-upload-data

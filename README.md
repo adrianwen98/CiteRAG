@@ -14,7 +14,7 @@
 
 项目采用 FastAPI 提供 RESTful API 服务，LangChain 负责 RAG 流程编排，Chroma 作为向量数据库，DeepSeek 作为大语言模型，并使用 Pytest 完成接口自动化测试。
 
-同时支持 Docker 与 Docker Compose 容器化部署，通过 Docker Volume 持久化向量数据，并配置 Healthcheck 检测服务运行状态。
+同时支持 Docker 与 Docker Compose 容器化部署，通过 Docker Volume 持久化向量数据与上传文档，并配置 Healthcheck 检测服务运行状态。
 
 
 ## 项目展示
@@ -83,7 +83,8 @@ RAG_Write/
 │
 ├── tests/
 │   ├── test_api.py                   # FastAPI 自动化测试
-│   └── test_formats.py               # TXT / Markdown / PDF / DOCX 解析与上传测试
+│   ├── test_formats.py               # TXT / Markdown / PDF / DOCX 解析与上传测试
+│   └── test_index_consistency.py     # 索引 ID、更新失败回滚与空库检索测试
 │
 ├── static/
 │   └── index.html                    # 单页问答前端（FastAPI 直接提供）
@@ -527,7 +528,7 @@ docker compose logs -f
 docker compose down
 ```
 
-Chroma 向量数据通过 Docker Volume 持久化保存，即使重新创建容器，已经建立的向量索引仍然可以继续使用。
+Chroma 向量数据与 `data/` 下的上传文档分别通过 Docker Volume 持久化。即使重新创建容器，已经建立的向量索引和原始文档都仍然保留。
 
 
 ## 自动化测试
@@ -553,11 +554,14 @@ pytest tests -v
 - Markdown / 文本型 PDF / DOCX 解析、页码引用与 Word 表格提取
 - 单页问答前端路由
 - 扫描版 PDF 拒绝、旧版 .doc 拒绝与上传回滚
+- 同名不同文件的内容相同文档不会共用向量 ID
+- 索引更新先写后删、写入失败时保留旧索引
+- 空知识库的 BM25 检索返回空结果
 
 测试结果：
 
 ```text
-18 passed
+23 passed
 ```
 
 
@@ -577,11 +581,11 @@ pytest tests -v
 
 - 构建离线 Retrieval Evaluation，对 Dense、Hybrid、Hybrid + Reranker 三种检索策略进行对比，并分析召回率与无答案误召回之间的权衡。
 
-- 对文档内容生成确定性索引标识，支持重复索引检测，避免同一文档重复写入向量库。
+- 对文档内容与文件名生成确定性且互不冲突的索引标识，支持重复索引检测；更新时先写入新向量、成功后再移除旧版本，写入失败不会丢失原有索引。
 
 - 使用 Pytest 对 API 接口进行自动化测试，覆盖正常流程、参数异常、资源不存在以及模型服务异常等场景。
 
-- 使用 Docker 与 Docker Compose 实现服务容器化部署，通过 Docker Volume 持久化 Chroma 向量数据。
+- 使用 Docker 与 Docker Compose 实现服务容器化部署，通过 Docker Volume 持久化 Chroma 向量数据与上传文档。
 
 - 配置 Docker Healthcheck，通过 `/health` 接口检测 FastAPI 服务是否真正启动完成，而不仅仅判断容器进程是否运行。
 
