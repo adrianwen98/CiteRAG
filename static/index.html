@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RAG 知识库问答</title>
+  <style>
+    :root {
+      --ink: #16171a;
+      --secondary: #4d535d;
+      --subtle: #737985;
+      --canvas: #f6f7fb;
+      --paper: #ffffff;
+      --line: #e4e7ee;
+      --line-strong: #cfd4df;
+      --accent: #5b5bd6;
+      --accent-dark: #4545b8;
+      --accent-tint: #eef0ff;
+      --success: #23795a;
+      --danger: #b42318;
+      --warn: #8a5a00;
+      --warn-bg: #fff8e8;
+      --radius: 14px;
+      --shadow: 0 16px 36px #1b243310;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--canvas);
+      color: var(--ink);
+      font: 15px/1.65 Inter, "Segoe UI", "Microsoft YaHei", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .55; }
+    .shell { max-width: 1180px; margin: 0 auto; padding: 0 24px 34px; }
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; min-height: 72px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .mark {
+      display: grid; place-items: center; width: 36px; height: 36px;
+      border-radius: 10px; color: #fff; font-weight: 700; font-size: 18px;
+      background: linear-gradient(145deg, #6a6ae8, #4b4bc2);
+      box-shadow: 0 4px 12px #4b4bc22b;
+    }
+    .brand strong { display: block; font-size: 16px; letter-spacing: -.2px; }
+    .brand small {
+      display: block; color: var(--subtle); font-size: 10px;
+      letter-spacing: 1.5px; margin-top: 2px;
+    }
+    .status {
+      display: inline-flex; align-items: center; gap: 7px;
+      border: 1px solid var(--line); background: var(--paper);
+      border-radius: 999px; padding: 6px 11px;
+      color: var(--secondary); font-size: 12px;
+    }
+    .status i { width: 6px; height: 6px; border-radius: 50%; background: #2e9b70; }
+    .layout { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 18px; align-items: start; }
+    .card {
+      background: var(--paper); border: 1px solid var(--line);
+      border-radius: var(--radius); box-shadow: var(--shadow);
+    }
+    .library { padding: 20px; position: sticky; top: 18px; }
+    .card h2 { margin: 0; font-size: 15px; font-weight: 650; }
+    .eyebrow { color: var(--subtle); font-size: 12px; letter-spacing: .4px; }
+    .stats {
+      display: flex; gap: 18px; margin: 14px 0 18px;
+      color: var(--subtle); font-size: 12px;
+    }
+    .stats strong { color: var(--ink); font-size: 17px; margin-right: 3px; }
+    .drop {
+      display: grid; gap: 7px; padding: 17px 14px; text-align: center;
+      border: 1px dashed var(--line-strong); border-radius: 11px;
+      background: #fbfbfe; cursor: pointer; transition: .15s ease;
+    }
+    .drop:hover, .drop.dragging { border-color: var(--accent); background: var(--accent-tint); }
+    .drop strong { font-size: 13px; }
+    .drop span { color: var(--subtle); font-size: 11.5px; }
+    .drop input { display: none; }
+    .upload-state { min-height: 18px; margin: 9px 1px 0; color: var(--subtle); font-size: 12px; }
+    .upload-state.error { color: var(--danger); }
+    .list-head {
+      display: flex; justify-content: space-between; align-items: baseline;
+      margin: 22px 0 9px; padding-top: 16px; border-top: 1px solid var(--line);
+    }
+    .list-head span { color: var(--subtle); font-size: 12px; }
+    .doc-list { display: grid; gap: 6px; max-height: 360px; overflow: auto; }
+    .doc {
+      display: flex; align-items: center; gap: 9px; padding: 9px 10px;
+      border: 1px solid transparent; border-radius: 9px;
+    }
+    .doc:hover { background: #f8f8fc; border-color: var(--line); }
+    .file-icon {
+      display: grid; place-items: center; width: 27px; height: 31px;
+      flex: none; border-radius: 6px; background: var(--accent-tint);
+      color: var(--accent); font-size: 9px; font-weight: 700;
+      border: 1px solid #dfe2fa;
+    }
+    .doc-name { min-width: 0; flex: 1; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .doc-delete {
+      flex: none; border: 0; background: transparent; color: var(--subtle);
+      padding: 3px 5px; border-radius: 5px; font-size: 15px; line-height: 1;
+    }
+    .doc-delete:hover { background: #fbecec; color: var(--danger); }
+    .empty { padding: 17px 8px; color: var(--subtle); font-size: 12.5px; text-align: center; }
+    .hint { margin: 13px 1px 0; color: var(--subtle); font-size: 11.5px; line-height: 1.7; }
+    .workspace { padding: 26px; min-height: 520px; }
+    .workspace-head { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
+    .workspace h1 { margin: 4px 0 0; font-size: 25px; letter-spacing: -.7px; line-height: 1.35; }
+    .workspace h1 span { color: var(--subtle); font-weight: 400; }
+    .workspace-sub { margin: 7px 0 0; color: var(--secondary); font-size: 13px; }
+    .ask-box { margin-top: 24px; border: 1px solid var(--line-strong); border-radius: 12px; background: #fff; overflow: hidden; }
+    .ask-box:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px #5b5bd614; }
+    .ask-box textarea {
+      display: block; width: 100%; min-height: 100px; resize: vertical;
+      border: 0; outline: 0; padding: 16px 17px 5px; color: var(--ink);
+      background: transparent; line-height: 1.75;
+    }
+    .ask-actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 11px 13px 13px 17px; }
+    .ask-actions span { color: var(--subtle); font-size: 11.5px; }
+    .primary {
+      display: inline-flex; align-items: center; gap: 7px;
+      border: 1px solid #17181d; border-radius: 9px; padding: 9px 15px;
+      background: #17181d; color: #fff; font-size: 13px; font-weight: 600;
+    }
+    .primary:hover:not(:disabled) { background: #000; }
+    .answer {
+      margin-top: 22px; padding: 19px 20px; border: 1px solid var(--line);
+      border-radius: 12px; background: #fbfbfd; min-height: 150px;
+    }
+    .answer-head { display: flex; align-items: center; gap: 7px; color: var(--subtle); font-size: 11.5px; letter-spacing: .4px; }
+    .answer-head i { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+    .answer-text { margin: 12px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.85; font-size: 14.5px; }
+    .answer-text.placeholder { color: var(--subtle); }
+    .citations { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 14px; padding-top: 13px; border-top: 1px solid var(--line); }
+    .citation {
+      padding: 4px 8px; border-radius: 6px; background: var(--accent-tint);
+      color: var(--accent-dark); font-size: 11.5px; max-width: 100%;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .error-box { margin-top: 14px; padding: 10px 12px; border-radius: 8px; background: #fbecec; color: var(--danger); font-size: 12.5px; }
+    .loading { display: inline-flex; align-items: center; gap: 7px; color: var(--subtle); font-size: 13px; }
+    .spinner { width: 14px; height: 14px; border: 2px solid #dfe1ef; border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 860px) {
+      .shell { padding: 0 14px 24px; }
+      .layout { grid-template-columns: 1fr; }
+      .library { position: static; }
+      .workspace { padding: 20px 17px; min-height: 0; }
+      .workspace h1 { font-size: 22px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: .01ms !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark">R</div>
+        <div><strong>RAG 知识库问答</strong><small>HYBRID RETRIEVAL · CITATIONS</small></div>
+      </div>
+      <div class="status"><i></i>本地运行</div>
+    </header>
+
+    <div class="layout">
+      <aside class="card library">
+        <div class="eyebrow">KNOWLEDGE LIBRARY</div>
+        <h2 style="margin-top:5px">知识库文档</h2>
+        <div class="stats">
+          <span><strong id="docCount">0</strong> 个文档</span>
+          <span><strong id="chunkCount">0</strong> 个片段</span>
+        </div>
+
+        <label class="drop" id="dropZone">
+          <input id="fileInput" type="file" accept=".txt,.md,.pdf,.docx">
+          <strong>上传文档，或拖到这里</strong>
+          <span>TXT · Markdown · 文本型 PDF · DOCX · 最大 2MB</span>
+        </label>
+        <div class="upload-state" id="uploadState"></div>
+
+        <div class="list-head"><h2>已索引文件</h2><span id="listCount"></span></div>
+        <div class="doc-list" id="docList"><div class="empty">正在读取知识库…</div></div>
+        <p class="hint">PDF 按页抽取文字并保留页码；扫描版 PDF、旧版 .doc 不做 OCR。</p>
+      </aside>
+
+      <main class="card workspace">
+        <div class="workspace-head">
+          <div>
+            <div class="eyebrow">ASK YOUR DOCUMENTS</div>
+            <h1>从文档里找到答案，<span>并标出来源。</span></h1>
+            <p class="workspace-sub">混合检索 + 重排序，回答只依据已索引片段；没有依据时会明确说找不到。</p>
+          </div>
+        </div>
+
+        <div class="ask-box">
+          <textarea id="question" maxlength="500" placeholder="例如：ORBIT-2026 的保修期是多久？"></textarea>
+          <div class="ask-actions">
+            <span>Enter 提问 · Shift + Enter 换行</span>
+            <button class="primary" id="askBtn" disabled>提问 <span aria-hidden="true">↗</span></button>
+          </div>
+        </div>
+
+        <section class="answer" aria-live="polite">
+          <div class="answer-head"><i></i>回答</div>
+          <p class="answer-text placeholder" id="answerText">上传文档后提问，答案和来源片段会显示在这里。</p>
+          <div class="citations" id="citations" hidden></div>
+          <div class="error-box" id="errorBox" hidden></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const state = { files: [], busy: false };
+
+    function escapeText(value) {
+      return String(value ?? "");
+    }
+
+    function setUpload(text, error = false) {
+      $("uploadState").textContent = text;
+      $("uploadState").className = "upload-state" + (error ? " error" : "");
+    }
+
+    function showError(text) {
+      $("errorBox").textContent = text;
+      $("errorBox").hidden = !text;
+    }
+
+    function fileBadge(name) {
+      const ext = (name.split(".").pop() || "").toUpperCase();
+      return ext.slice(0, 4);
+    }
+
+    function renderFiles() {
+      $("docCount").textContent = state.files.length;
+      $("listCount").textContent = state.files.length ? `${state.files.length} 个` : "";
+      const list = $("docList");
+      list.textContent = "";
+      if (!state.files.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "还没有文档。先上传一份 TXT、Markdown、PDF 或 DOCX。";
+        list.appendChild(empty);
+        return;
+      }
+      for (const name of state.files) {
+        const row = document.createElement("div");
+        row.className = "doc";
+        const icon = document.createElement("span");
+        icon.className = "file-icon";
+        icon.textContent = fileBadge(name);
+        const label = document.createElement("span");
+        label.className = "doc-name";
+        label.title = name;
+        label.textContent = name;
+        const del = document.createElement("button");
+        del.className = "doc-delete";
+        del.type = "button";
+        del.title = `删除 ${name}`;
+        del.setAttribute("aria-label", `删除 ${name}`);
+        del.textContent = "×";
+        del.addEventListener("click", () => removeFile(name));
+        row.append(icon, label, del);
+        list.appendChild(row);
+      }
+    }
+
+    async function refresh() {
+      try {
+        const [filesResponse, statsResponse] = await Promise.all([
+          fetch("/documents"), fetch("/stats"),
+        ]);
+        if (!filesResponse.ok) throw new Error("无法读取文档列表");
+        const data = await filesResponse.json();
+        state.files = data.files || [];
+        if (statsResponse.ok) {
+          const stats = await statsResponse.json();
+          $("chunkCount").textContent = stats.vector_count ?? 0;
+        }
+        renderFiles();
+      } catch (error) {
+        showError(error.message || "无法连接后端");
+      }
+    }
+
+    async function upload(file) {
+      if (!file || state.busy) return;
+      state.busy = true;
+      setUpload(`正在解析并索引 ${file.name}…`);
+      showError("");
+      const form = new FormData();
+      form.append("file", file);
+      try {
+        const response = await fetch("/documents/upload", { method: "POST", body: form });
+        let data = {};
+        try { data = await response.json(); } catch (_) {}
+        if (!response.ok) throw new Error(data.detail || "上传失败");
+        setUpload(data.message || "上传成功");
+        await refresh();
+      } catch (error) {
+        setUpload(error.message || "上传失败", true);
+      } finally {
+        state.busy = false;
+        $("fileInput").value = "";
+      }
+    }
+
+    async function removeFile(name) {
+      if (!window.confirm(`删除《${name}》及其向量索引？`)) return;
+      try {
+        const response = await fetch(`/documents/${encodeURIComponent(name)}`, { method: "DELETE" });
+        let data = {};
+        try { data = await response.json(); } catch (_) {}
+        if (!response.ok) throw new Error(data.detail || "删除失败");
+        setUpload(`已删除 ${name}`);
+        await refresh();
+      } catch (error) {
+        showError(error.message || "删除失败");
+      }
+    }
+
+    function extractCitations(answer) {
+      const found = [];
+      const pattern = /【片段\d+[|｜]来源：([^】]+)】/g;
+      let match;
+      while ((match = pattern.exec(answer)) !== null) {
+        if (!found.includes(match[1])) found.push(match[1]);
+      }
+      return found;
+    }
+
+    async function ask() {
+      const question = $("question").value.trim();
+      if (!question || state.busy) return;
+      state.busy = true;
+      $("askBtn").disabled = true;
+      $("answerText").classList.remove("placeholder");
+      $("answerText").textContent = "";
+      $("citations").hidden = true;
+      $("citations").textContent = "";
+      showError("");
+      const answerNode = $("answerText");
+      const loading = document.createElement("span");
+      loading.className = "loading";
+      loading.innerHTML = '<span class="spinner"></span>正在检索并生成回答…';
+      answerNode.appendChild(loading);
+      try {
+        const response = await fetch("/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question }),
+        });
+        let data = {};
+        try { data = await response.json(); } catch (_) {}
+        if (!response.ok) throw new Error(data.detail || "问答失败");
+        answerNode.textContent = data.answer || "没有返回内容";
+        const citations = extractCitations(data.answer || "");
+        if (citations.length) {
+          const box = $("citations");
+          box.hidden = false;
+          citations.forEach((citation) => {
+            const chip = document.createElement("span");
+            chip.className = "citation";
+            chip.title = citation;
+            chip.textContent = citation;
+            box.appendChild(chip);
+          });
+        }
+      } catch (error) {
+        answerNode.textContent = "暂时无法回答。";
+        showError(error.message || "问答失败");
+      } finally {
+        state.busy = false;
+        $("askBtn").disabled = !$("question").value.trim();
+      }
+    }
+
+    $("fileInput").addEventListener("change", (event) => upload(event.target.files[0]));
+    const drop = $("dropZone");
+    ["dragenter", "dragover"].forEach((event) => drop.addEventListener(event, (e) => {
+      e.preventDefault(); drop.classList.add("dragging");
+    }));
+    ["dragleave", "drop"].forEach((event) => drop.addEventListener(event, (e) => {
+      e.preventDefault(); drop.classList.remove("dragging");
+    }));
+    drop.addEventListener("drop", (event) => upload(event.dataTransfer.files[0]));
+    $("question").addEventListener("input", () => {
+      $("askBtn").disabled = state.busy || !$("question").value.trim();
+    });
+    $("question").addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        ask();
+      }
+    });
+    $("askBtn").addEventListener("click", ask);
+    refresh();
+  </script>
+</body>
+</html>

@@ -122,3 +122,10 @@ def test_index_accepts_markdown_under_data_dir(tmp_path, monkeypatch):
 
     rejected = client.post("/documents/index", json={"file_path": str(data_dir / "bad.docx")})
     assert rejected.status_code in {400, 404}
+
+
+def test_root_serves_single_page_ui():
+    response = client.get("/")
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+    assert "RAG 知识库问答" in response.text

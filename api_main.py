@@ -7,6 +7,7 @@ from fastapi import (
     Path as PathParam
 )
 from pydantic import BaseModel, Field
+from fastapi.responses import FileResponse
 from pathlib import Path
 from langchain_rag_service import (
     get_vector_count,
@@ -30,6 +31,7 @@ app = FastAPI(
 )
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
+STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 MAX_FILE_SIZE = 2 * 1024 * 1024
 
@@ -116,6 +118,14 @@ def get_stats():
         "vector_count": vector_count
     }
 
+
+
+@app.get("/", include_in_schema=False)
+def workbench():
+    index = STATIC_DIR / "index.html"
+    if not index.is_file():
+        raise HTTPException(status_code=503, detail="前端页面缺失，请确认 static/index.html 存在")
+    return FileResponse(index, media_type="text/html")
 
 
 @app.get("/health")

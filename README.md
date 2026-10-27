@@ -19,6 +19,12 @@
 
 ## 项目展示
 
+### 内置问答页面
+
+![RAG 问答页面](docs/images/rag_ui.jpg)
+
+页面由 FastAPI 直接提供，无需 Node 构建；上传、文件列表、提问和引用展示都在同一个页面完成。
+
 ### Swagger API
 
 ![Swagger API](docs/images/swagger.jpg)
@@ -69,6 +75,7 @@ RAG_Write/
 │   └── images/
 │       ├── index.jpg
 │       ├── rag_answer.jpg
+│       ├── rag_ui.jpg                # 内置问答页面截图
 │       └── swagger.jpg               # README 项目展示图片
 │
 ├── evaluation/
@@ -77,6 +84,9 @@ RAG_Write/
 ├── tests/
 │   ├── test_api.py                   # FastAPI 自动化测试
 │   └── test_formats.py               # TXT / Markdown / PDF / DOCX 解析与上传测试
+│
+├── static/
+│   └── index.html                    # 单页问答前端（FastAPI 直接提供）
 │
 ├── api_main.py                       # FastAPI 接口层
 ├── langchain_rag_service.py          # RAG 业务逻辑层
@@ -477,10 +487,9 @@ uvicorn api_main:app --host 0.0.0.0 --port 8002
 启动成功后访问：
 
 ```text
-http://127.0.0.1:8002/docs
+http://127.0.0.1:8002/        # 问答页面
+http://127.0.0.1:8002/docs    # Swagger 接口调试
 ```
-
-通过 Swagger UI 查看和测试接口。
 
 
 ### 3. Docker Compose 启动
@@ -502,7 +511,8 @@ docker compose ps
 当容器状态显示 `healthy` 后，访问：
 
 ```text
-http://localhost:8002/docs
+http://localhost:8002/        # 问答页面
+http://localhost:8002/docs    # Swagger 接口调试
 ```
 
 查看实时日志：
@@ -541,12 +551,13 @@ pytest tests -v
 - 模型服务异常处理
 - 文档索引接口
 - Markdown / 文本型 PDF / DOCX 解析、页码引用与 Word 表格提取
+- 单页问答前端路由
 - 扫描版 PDF 拒绝、旧版 .doc 拒绝与上传回滚
 
 测试结果：
 
 ```text
-17 passed
+18 passed
 ```
 
 
