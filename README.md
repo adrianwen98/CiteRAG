@@ -8,7 +8,7 @@
 
 本项目基于 LangChain 构建了一个可服务化的 RAG（Retrieval-Augmented Generation，检索增强生成）知识库问答系统。
 
-系统支持本地 TXT、Markdown 和文本型 PDF 文档上传与索引，通过文本切分、Embedding 向量化、Chroma 向量存储，以及 Dense Retrieval 与 BM25 Sparse Retrieval 组成的 Hybrid Retrieval，实现基于私有知识库的智能问答。
+系统支持本地 TXT、Markdown、文本型 PDF 和 DOCX 文档上传与索引，通过文本切分、Embedding 向量化、Chroma 向量存储，以及 Dense Retrieval 与 BM25 Sparse Retrieval 组成的 Hybrid Retrieval，实现基于私有知识库的智能问答。
 
 检索阶段使用 RRF（Reciprocal Rank Fusion）融合 Dense 与 BM25 的排序结果，并通过 CrossEncoder Reranker 对候选文档进行二次相关性排序与阈值过滤，以减少弱相关内容进入最终上下文。
 
@@ -76,7 +76,7 @@ RAG_Write/
 │
 ├── tests/
 │   ├── test_api.py                   # FastAPI 自动化测试
-│   └── test_formats.py               # TXT / Markdown / PDF 解析与上传测试
+│   └── test_formats.py               # TXT / Markdown / PDF / DOCX 解析与上传测试
 │
 ├── api_main.py                       # FastAPI 接口层
 ├── langchain_rag_service.py          # RAG 业务逻辑层
@@ -248,7 +248,7 @@ Dense Retrieval 使用较严格的相似度阈值时具有较好的无答案拒�
 
 ### 1. 文档索引
 
-支持将本地 `.txt`、`.md` 和文本型 `.pdf` 文档加入知识库：
+支持将本地 `.txt`、`.md`、文本型 `.pdf` 和 `.docx` 文档加入知识库：
 
 - 文档读取
 - 文本切分
@@ -257,7 +257,7 @@ Dense Retrieval 使用较严格的相似度阈值时具有较好的无答案拒�
 - 重复索引检测
 
 
-> PDF 使用 PyMuPDF 按页抽取文字，chunk metadata 会保留页码；扫描版 PDF 没有文字层时会明确拒绝，不做 OCR。Markdown 按纯文本读取，不使用标题层级重排。
+> PDF 使用 PyMuPDF 按页抽取文字，chunk metadata 会保留页码；扫描版 PDF 没有文字层时会明确拒绝，不做 OCR。Markdown 按纯文本读取，不使用标题层级重排。DOCX 用 python-docx 读取段落和表格文字；Word 没有稳定页码，引用只显示文件名。旧版 .doc 不支持。
 
 ### 2. 知识库检索
 
@@ -374,7 +374,7 @@ GET /documents?keyword=test
 
 `POST /documents/index`
 
-将指定的 `.txt`、`.md` 或文本型 `.pdf` 文件加入知识库。
+将指定的 `.txt`、`.md`、文本型 `.pdf` 或 `.docx` 文件加入知识库。
 
 请求示例：
 
@@ -403,11 +403,11 @@ Chroma 向量存储
 
 `POST /documents/upload`
 
-上传新的 `.txt`、`.md` 或文本型 `.pdf` 文件，并自动完成索引。
+上传新的 `.txt`、`.md`、文本型 `.pdf` 或 `.docx` 文件，并自动完成索引。
 
 支持：
 
-- 文件类型校验（TXT / Markdown / 文本型 PDF）
+- 文件类型校验（TXT / Markdown / 文本型 PDF / DOCX）
 - 文件大小限制
 - 同名文件检测
 - 自动建立向量索引
@@ -540,13 +540,13 @@ pytest tests -v
 - 文件冲突处理
 - 模型服务异常处理
 - 文档索引接口
-- Markdown / 文本型 PDF 解析与页码引用
-- 扫描版 PDF 拒绝与上传回滚
+- Markdown / 文本型 PDF / DOCX 解析、页码引用与 Word 表格提取
+- 扫描版 PDF 拒绝、旧版 .doc 拒绝与上传回滚
 
 测试结果：
 
 ```text
-16 passed
+17 passed
 ```
 
 

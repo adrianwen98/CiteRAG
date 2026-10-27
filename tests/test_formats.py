@@ -39,6 +39,26 @@ def test_markdown_and_text_pdf_are_split_with_page_metadata(tmp_path):
     assert all(doc.metadata["file_type"] == ".pdf" for doc in pdf_docs)
 
 
+def test_word_paragraphs_and_tables_are_extracted(tmp_path):
+    from docx import Document as DocxDocument
+
+    path = tmp_path / "manual.docx"
+    document = DocxDocument()
+    document.add_paragraph("第一段：产品说明")
+    table = document.add_table(rows=2, cols=2)
+    table.cell(0, 0).text = "型号"
+    table.cell(0, 1).text = "价格"
+    table.cell(1, 0).text = "A1"
+    table.cell(1, 1).text = "99"
+    document.save(path)
+
+    docs = load_and_split_documents(str(path), 300, 50)
+    assert docs and docs[0].metadata["file_type"] == ".docx"
+    assert "page" not in docs[0].metadata
+    text = "\n".join(doc.page_content for doc in docs)
+    assert "产品说明" in text and "型号" in text and "99" in text
+
+
 def test_scanned_pdf_without_text_is_rejected(tmp_path):
     scanned = make_pdf(tmp_path / "scanned.pdf", [None])
     with pytest.raises(DocumentNoTextError):
@@ -58,7 +78,7 @@ def test_upload_accepts_markdown_and_rejects_unknown_extension(tmp_path, monkeyp
 
     rejected = client.post(
         "/documents/upload",
-        files={"file": ("notes.docx", b"not supported", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")},
+        files={"file": ("legacy.doc", b"not supported", "application/msword")},
     )
     assert rejected.status_code == 400
 

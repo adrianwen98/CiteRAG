@@ -240,7 +240,7 @@ def index_document(request: IndexRequest) -> dict[str, str]:
     if file_path.suffix.lower() not in SUPPORTED_SUFFIXES:
         raise HTTPException(
             status_code=400,
-            detail="目前只支持索引 .txt、.md 和文本型 .pdf 文件"
+            detail="目前只支持索引 .txt、.md、文本型 .pdf 和 .docx 文件"
         )
 
     try:
@@ -295,7 +295,7 @@ async def upload_document(file:UploadFile = File(...)):
     file_name = Path(file.filename or "").name
 
     if Path(file_name).suffix.lower() not in SUPPORTED_SUFFIXES:
-        raise HTTPException(status_code=400,detail="目前只支持上传 .txt、.md 和文本型 .pdf 文件")
+        raise HTTPException(status_code=400,detail="目前只支持上传 .txt、.md、文本型 .pdf 和 .docx 文件")
 
     save_path = DATA_DIR / file_name
 

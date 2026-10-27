@@ -1,9 +1,10 @@
 from pathlib import Path
 
 import pymupdf
+from docx import Document as DocxDocument
 
 
-SUPPORTED_SUFFIXES = {".txt", ".md", ".pdf"}
+SUPPORTED_SUFFIXES = {".txt", ".md", ".pdf", ".docx"}
 
 
 class UnsupportedDocumentError(ValueError):
@@ -23,6 +24,31 @@ def read_text_file(file_path: str) -> str:
         return file.read()
 
 
+def read_docx_text(file_path: str) -> str:
+    """Extract paragraph and table text from a .docx file (no legacy .doc support)."""
+    try:
+        document = DocxDocument(file_path)
+    except Exception as exc:
+        raise DocumentParseError("Word 文档读取失败，文件可能损坏或已加密") from exc
+
+    parts = [
+        paragraph.text.strip()
+        for paragraph in document.paragraphs
+        if paragraph.text.strip()
+    ]
+    for table in document.tables:
+        for row in table.rows:
+            cells = [" ".join(cell.text.split()) for cell in row.cells]
+            line = "\t".join(cells).strip()
+            if line:
+                parts.append(line)
+
+    text = "\n".join(parts)
+    if not text.strip():
+        raise DocumentNoTextError("Word 文档没有可提取文字")
+    return text
+
+
 def read_document_pages(file_path: str) -> list[tuple[int | None, str]]:
     """Return (page_number, text) pairs. Page numbers are 1-based for PDFs."""
     path = Path(file_path)
@@ -31,9 +57,12 @@ def read_document_pages(file_path: str) -> list[tuple[int | None, str]]:
     if suffix in {".txt", ".md"}:
         return [(None, read_text_file(file_path))]
 
+    if suffix == ".docx":
+        return [(None, read_docx_text(file_path))]
+
     if suffix != ".pdf":
         raise UnsupportedDocumentError(
-            "暂时只支持 .txt、.md 和文本型 .pdf 文件"
+            "暂时只支持 .txt、.md、文本型 .pdf 和 .docx 文件"
         )
 
     try:

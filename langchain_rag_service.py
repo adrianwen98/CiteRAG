@@ -118,7 +118,7 @@ def index_file_langchain(file_path: str) -> str:
         return "文件不存在"
 
     if path.suffix.lower() not in SUPPORTED_SUFFIXES:
-        return "暂时只支持 .txt、.md 和文本型 .pdf 文件"
+        return "暂时只支持 .txt、.md、文本型 .pdf 和 .docx 文件"
 
     try:
         split_documents = load_and_split_documents(
