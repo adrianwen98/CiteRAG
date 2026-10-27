@@ -46,7 +46,7 @@
       background: var(--forest); color: #f4f0e6; border-radius: 3px;
       font-family: var(--serif); font-size: 22px; font-weight: 700;
     }
-    .brand strong { display: block; font-family: var(--serif); font-size: 17px; letter-spacing: .2px; }
+    .brand strong { display: block; font-size: 17px; font-weight: 650; letter-spacing: -.2px; }
     .brand small {
       display: block; color: var(--muted); margin-top: 1px;
       font-size: 9.5px; letter-spacing: 1.7px;
@@ -72,11 +72,11 @@
     .eyebrow::before { content: ""; width: 27px; height: 1px; background: var(--clay); }
     .hero h1 {
       margin: 20px 0 13px;
-      font-family: var(--serif);
-      font-size: clamp(31px, 4.4vw, 50px);
-      font-weight: 600;
-      letter-spacing: -1.2px;
-      line-height: 1.38;
+      font-family: Inter, "Segoe UI", "Microsoft YaHei", sans-serif;
+      font-size: clamp(30px, 4.1vw, 46px);
+      font-weight: 650;
+      letter-spacing: -1.4px;
+      line-height: 1.35;
       color: var(--ink);
     }
     .hero h1 em { color: var(--clay); font-style: normal; }
@@ -121,7 +121,7 @@
     }
     .answer-text {
       margin: 0; white-space: pre-wrap; overflow-wrap: anywhere;
-      font-family: var(--serif); font-size: 17px; line-height: 1.95; color: #30352f;
+      font-size: 15.5px; line-height: 1.95; color: #30352f;
     }
     .answer-text.placeholder { color: #88877b; }
     .answer-text strong { color: var(--ink); font-weight: 700; }
@@ -164,7 +164,7 @@
     }
     .drawer.open { transform: translateX(0); }
     .drawer-head { display: flex; justify-content: space-between; align-items: flex-start; padding: 26px 25px 17px; }
-    .drawer-head h2 { font-family: var(--serif); font-size: 22px; margin: 3px 0 0; letter-spacing: -.4px; }
+    .drawer-head h2 { font-size: 22px; margin: 3px 0 0; letter-spacing: -.4px; }
     .close {
       border: 0; background: transparent; color: var(--muted);
       font-size: 24px; line-height: 1; padding: 1px 6px;
@@ -247,9 +247,9 @@
     </header>
 
     <section class="hero">
-      <div class="eyebrow">ASK THE ARCHIVE</div>
-      <h1>从资料里找到答案，<br>并且告诉你<em>它从哪来</em>。</h1>
-      <p>混合检索 + 重排序，只根据已索引的文档片段回答；找不到依据时，会明确说不知道。</p>
+      <div class="eyebrow">ASK YOUR DOCUMENTS</div>
+      <h1>问你的文档，<br><em>答案有出处</em>。</h1>
+      <p>混合检索与重排序，只依据已索引片段回答；找不到依据时会明确说明。</p>
 
       <div class="ask">
         <textarea id="question" maxlength="500" placeholder="例如：ORBIT-2026 的保修期是多久？"></textarea>
