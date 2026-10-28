@@ -1,8 +1,13 @@
-# 基于 LangChain + Chroma + FastAPI 的 RAG 知识库问答系统
+# 基于混合检索与重排序的 RAG 知识库问答系统
 
-# LangChain RAG FastAPI
+**CiteRAG** · LangChain + ChromaDB + FastAPI
 
-[![Python Tests](https://github.com/adrianwen98/langchain-rag-fastapi/actions/workflows/tests.yml/badge.svg)](https://github.com/adrianwen98/langchain-rag-fastapi/actions/workflows/tests.yml)
+[![Tests](https://github.com/adrianwen98/langchain-rag-fastapi/actions/workflows/tests.yml/badge.svg)](https://github.com/adrianwen98/langchain-rag-fastapi/actions/workflows/tests.yml)
+[![Python 3.14](https://img.shields.io/badge/Python-3.14-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.139-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![LangChain](https://img.shields.io/badge/LangChain-1.3-1C3C3C)](https://www.langchain.com/)
+[![ChromaDB](https://img.shields.io/badge/ChromaDB-1.5-FF6B6B)](https://www.trychroma.com/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
 
 ## 项目简介
 
